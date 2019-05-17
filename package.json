@@ -12,5 +12,9 @@
   "devDependencies": {
     "parcel-bundler": "1.12.3",
     "prettier": "1.17.1"
+  },
+  "dependencies": {
+    "honeycomb-grid": "2.0.1",
+    "svg.js": "2.7.1"
   }
 }

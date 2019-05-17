@@ -1,21 +1,25 @@
-// import { defineGrid, extendHex } from 'honeycomb-grid';
-// import svgjs from 'svg.js';
+import { defineGrid, extendHex } from 'honeycomb-grid';
+import svgjs from 'svg.js';
 
-// const rootElement = document.getElementById('main')
-// const draw = svgjs(rootElement)
+const rootElement = document.getElementById('main')
+const Hex = extendHex({ orientation: 'flat', size: 20 })
+const Grid = defineGrid(Hex)
 
-// const Hex = extendHex({ orientation: 'flat', size: 50 })
-// const Grid = defineGrid(Hex)
-// const corners = Hex().corners()
-// const hexSymbol = draw.symbol()
-//     // map the corners' positions to a string and create a polygon
-//     .polygon(corners.map(({ x, y }) => `${x},${y}`))
-//     .fill('none')
-//     .stroke({ width: 1, color: '#999' })
+const draw = svgjs(rootElement)
+const hexSymbol = draw.symbol()
+  .polygon(Hex().corners().map(({ x, y }) => `${x},${y}`))
+  .fill('none')
+  .stroke({ width: 3, color: '#eee' })
 
-// // render 10,000 hexes
-// Grid.rectangle({ width: 100, height: 100 }).forEach(hex => {
-//     const { x, y } = hex.toPoint()
-//     // use hexSymbol and set its position for each hex
-//     draw.use(hexSymbol).translate(x, y)
-// })
+Grid.rectangle({ width: 24, height: 16 }).forEach(hex => {
+  const { x, y } = hex.toPoint()
+  draw.use(hexSymbol).translate(x, y)
+})
+
+const { width, height } = draw.bbox()
+rootElement.style.width = `${width}px`
+rootElement.style.height = `${height}px`
+
+draw.use('ant')
+  .fill('#333')
+  .size(32)
