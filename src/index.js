@@ -12,6 +12,6 @@ const { width, height } = draw.bbox()
 rootElement.style.width = `${width}px`
 rootElement.style.height = `${height}px`
 
-const hex = grid.hexes[0]
-const ant = new Ant({ hex })
-ant.render({ draw })
+const ant = new Ant({ grid })
+const hex = grid.hexes[100]
+ant.render({ draw, hex }).move(0)
