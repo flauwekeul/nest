@@ -1,7 +1,8 @@
 import { defineGrid, extendHex } from 'honeycomb-grid';
+import { randomNumber } from '../utils';
 
 export class Grid {
-  constructor({ draw }) {
+  constructor({ draw } = {}) {
     this.draw = draw
     this.svgs = []
 
@@ -17,7 +18,7 @@ export class Grid {
       .stroke({ width: 3, color: '#eee' })
   }
 
-  render({ debug = false }) {
+  render({ debug = false } = {}) {
     this.hexes.forEach(hex => {
       const { x, y } = hex.toPoint()
       const hexSvg = this.draw
@@ -43,5 +44,9 @@ export class Grid {
     })
 
     return this
+  }
+
+  randomHex() {
+    return this.hexes[randomNumber(0, this.hexes.length - 1)]
   }
 }
