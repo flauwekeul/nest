@@ -1,14 +1,13 @@
 import { defineGrid, extendHex } from 'honeycomb-grid';
-import { randomNumber } from '../utils';
 
 export class Grid {
-  constructor({ draw } = {}) {
+  constructor({ draw, width = 1, height = 1 } = {}) {
     this.draw = draw
     this.svgs = []
 
     const Hex = extendHex({ orientation: 'flat', size: 20 })
     const Grid = defineGrid(Hex)
-    this.hexes = Grid.rectangle({ width: 24, height: 16 })
+    this.hexes = Grid.rectangle({ width, height })
 
     // todo: corners should be on Hex?
     const hexCorners = this.hexes[0].corners()
@@ -44,9 +43,5 @@ export class Grid {
     })
 
     return this
-  }
-
-  randomHex() {
-    return this.hexes[randomNumber(0, this.hexes.length - 1)]
   }
 }
