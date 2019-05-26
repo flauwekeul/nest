@@ -5,25 +5,30 @@ import { signedModulo } from '../utils';
 const animationDuration = SETTINGS.tickInterval - 10
 
 export class Ant {
-  constructor({ draw, grid, hex = grid.hexes[0], direction = 0 } = {}) {
+  constructor({
+    draw,
+    tile,
+    direction = 0,
+    surroundingTiles = () => { }
+  } = {}) {
     this.draw = draw
-    this.grid = grid
-    this.hex = hex
+    this.tile = tile
     this._setDirection(direction)
+    this.surroundingTiles = surroundingTiles
   }
 
   render() {
     // todo: create antSymbol once and use it for each ant
-    const { x, y } = this.hexToPoint()
+    const { x, y } = this.tileToPoint()
     const antSvg = this.draw.use('ant')
       .addClass('ant')
       .fill('#333')
       .size(40)
       .center(0, 0)
       .rotate(this.direction * 60)
-    // create a filler rectangle to make the group occupy the same space as a hex
+    // create a filler rectangle to make the group occupy the same space as a tile
     const filler = this.draw
-      .rect(this.hex.width(), this.hex.height())
+      .rect(this.tile.width(), this.tile.height())
       .fill('none')
       .center(0, 0)
     this.svg = this.draw
@@ -35,15 +40,15 @@ export class Ant {
     return this
   }
 
-  hexInFront() {
+  tileInFront() {
     // subtract 2 from the direction, because for a honeycomb grid of flat hexes, the 0 direction is "South East"
-    return this.grid.hexes.neighborsOf(this.hex, this.direction - 2)[0]
+    return this.surroundingTiles({ tile: this.tile, direction: this.direction - 2 })[0]
   }
 
-  // todo: also move to hex to the left and right of the hex in front?
+  // todo: also move to tile to the left and right of the tile in front?
   move() {
-    this.hex = this.hexInFront()
-    const { x, y } = this.hexToPoint()
+    this.tile = this.tileInFront()
+    const { x, y } = this.tileToPoint()
     this.svg
       .animate({ duration: animationDuration, ease: '-' })
       .move(x, y)
@@ -69,8 +74,8 @@ export class Ant {
   //   return this
   // }
 
-  hexToPoint() {
-    return this.hex.center().add(this.hex.toPoint())
+  tileToPoint() {
+    return this.tile.center().add(this.tile.toPoint())
   }
 
   _setDirection(direction = 0) {

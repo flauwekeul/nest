@@ -10,9 +10,9 @@ export class Behavior {
       return
     }
 
-    const hexInFront = this.ant.hexInFront()
-    // when the ant can move forward: 90% it will, 10% it'll turn
-    if (hexInFront && Math.random() > 0.1) {
+    const tileInFront = this.ant.tileInFront()
+    // when the ant can move forward: 80% chance it will
+    if (tileInFront && !tileInFront.ant && Math.random() > 0.2) {
       this.ant.move()
     } else {
       // 80% chance to turn the same direction as last time
