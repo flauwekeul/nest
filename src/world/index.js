@@ -1,5 +1,5 @@
 import svgjs from 'svg.js';
-import { Ant, Behavior } from '../ant';
+import { Ant } from '../ant';
 import { Grid } from '../grid';
 
 export class World {
@@ -45,9 +45,7 @@ export class World {
 
   tick() {
     this.ants.forEach(ant => {
-      // todo: don't instantiate a new Behavior for each ant, should be a singleton
-      const behavior = new Behavior({ ant })
-      behavior.explore()
+      ant.explore()
     })
     return this
   }
