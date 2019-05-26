@@ -12,18 +12,20 @@ export class World {
     this.ants = []
   }
 
-  render() {
-    this.grid.render()
+  render({ debug = false } = {}) {
+    this.grid.render({ debug })
 
     const { width, height } = this.draw.bbox()
     this.el.style.width = `${width}px`
     this.el.style.height = `${height}px`
+
+    return this
   }
 
   addAnt({ tile = this.tiles[0], direction = 0 } = {}) {
     const ant = new Ant({
       draw: this.draw,
-      surroundingTiles: this.surroundingTiles.bind(this),
+      surroundingTiles: this._surroundingTiles.bind(this),
       tile,
       direction,
     })
@@ -34,19 +36,19 @@ export class World {
     return this
   }
 
-  surroundingTiles({ tile, direction } = {}) {
+  tick() {
+    this.ants.forEach(ant => {
+      ant.explore()
+    })
+    return this
+  }
+
+  _surroundingTiles({ tile, direction } = {}) {
     return this.tiles
       .neighborsOf(tile, direction)
       .map(tile => {
         tile.ant = this.ants.find(ant => ant.tile.equals(tile))
         return tile
       })
-  }
-
-  tick() {
-    this.ants.forEach(ant => {
-      ant.explore()
-    })
-    return this
   }
 }

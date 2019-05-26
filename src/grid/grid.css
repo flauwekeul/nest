@@ -1,0 +1,9 @@
+.hex {
+  fill: none;
+  stroke-width: 3px;
+  stroke: #eee;
+}
+
+.hex.hex--nest {
+  fill: #333;
+}

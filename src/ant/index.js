@@ -1,5 +1,6 @@
 import { SETTINGS } from '../settings';
 import { signedModulo } from '../utils';
+import './ant.css';
 
 // a little shorter than the tick interval to make sure the animation always finishes before the next tick
 const animationDuration = SETTINGS.tickInterval - 10
@@ -19,18 +20,16 @@ export class Ant {
   }
 
   render() {
-    // todo: create antSymbol once and use it for each ant
     const { x, y } = this._tileToPoint()
     const antSvg = this.draw.use('ant')
       .addClass('ant')
-      .fill('#333')
       .size(40)
       .center(0, 0)
       .rotate(this.direction * 60)
     // create a filler rectangle to make the group occupy the same space as a tile
     const filler = this.draw
       .rect(this.tile.width(), this.tile.height())
-      .fill('none')
+      .addClass('filler')
       .center(0, 0)
     this.svg = this.draw
       .group()

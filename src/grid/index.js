@@ -1,9 +1,9 @@
 import { defineGrid, extendHex } from 'honeycomb-grid';
+import './grid.css';
 
 export class Grid {
   constructor({ draw, width = 1, height = 1 } = {}) {
     this.draw = draw
-    this.svgs = []
 
     const Hex = extendHex({ orientation: 'flat', size: 20 })
     const Grid = defineGrid(Hex)
@@ -11,10 +11,7 @@ export class Grid {
 
     // todo: corners should be on Hex?
     const hexCorners = this.hexes[0].corners()
-    this.hexSymbol = draw.symbol()
-      .polygon(hexCorners.map(({ x, y }) => `${x},${y}`))
-      .fill('none')
-      .stroke({ width: 3, color: '#eee' })
+    this.hexSymbol = draw.symbol().polygon(hexCorners.map(({ x, y }) => `${x},${y}`))
   }
 
   render({ debug = false } = {}) {
@@ -22,13 +19,19 @@ export class Grid {
       const { x, y } = hex.toPoint()
       const hexSvg = this.draw
         .use(this.hexSymbol)
+        .addClass('hex')
         .translate(x, y)
-      const group = this.draw.group().add(hexSvg)
+
+      if (hex.equals(this.nestHex)) {
+        hexSvg.addClass('hex hex--nest')
+      }
+
+      const hexGroup = this.draw.group().add(hexSvg)
 
       if (debug) {
         const fontSize = 11
         const position = hex.center().add(x, y)
-        this.draw
+        const coordinates = this.draw
           .text(`${hex.x},${hex.y}`)
           .font({
             size: fontSize,
@@ -37,9 +40,8 @@ export class Grid {
             fill: '#ccc'
           })
           .translate(position.x, position.y - fontSize)
+        hexGroup.add(coordinates)
       }
-
-      this.svgs.push(group)
     })
 
     return this
