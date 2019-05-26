@@ -69,7 +69,7 @@ export class Ant {
 
     const tileInFront = this._tileInFront()
     // when the ant can move forward: 80% chance it will
-    if (tileInFront && !tileInFront.ant && Math.random() > 0.2) {
+    if (tileInFront && !tileInFront.contents && Math.random() > 0.2) {
       this.move()
     } else {
       // 80% chance to turn the same direction as last time

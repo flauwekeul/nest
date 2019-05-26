@@ -2,8 +2,9 @@ import { defineGrid, extendHex } from 'honeycomb-grid';
 import './grid.css';
 
 export class Grid {
-  constructor({ draw, width = 1, height = 1 } = {}) {
+  constructor({ draw, width = 1, height = 1, nestHex } = {}) {
     this.draw = draw
+    this.nestHex = nestHex
 
     const Hex = extendHex({ orientation: 'flat', size: 20 })
     const Grid = defineGrid(Hex)
