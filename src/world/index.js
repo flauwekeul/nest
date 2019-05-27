@@ -1,6 +1,7 @@
 import svgjs from 'svg.js';
 import { Ant } from '../ant';
 import { Grid } from '../grid';
+import './world.css';
 
 export class World {
   get tiles() { return this.grid.hexes }
@@ -9,7 +10,11 @@ export class World {
     this.el = el
     this.draw = svgjs(this.el)
     this.grid = new Grid({ draw: this.draw, nestHex: nestTile, width, height })
-    this.nestTile = this.tiles.get(nestTile)
+
+    // todo: make prettier
+    const _nestTile = this.tiles.get(nestTile)
+    _nestTile.type = 'nest'
+    this.nestTile = _nestTile
     this.ants = []
   }
 
@@ -27,6 +32,7 @@ export class World {
     const ant = new Ant({
       draw: this.draw,
       surroundingTiles: this._surroundingTiles.bind(this),
+      tileTowardsNest: this._tileTowardsNest.bind(this),
       tile: this.nestTile,
       direction,
     })
@@ -37,9 +43,25 @@ export class World {
     return this
   }
 
+  addFood({ tile } = {}) {
+    // todo: make prettier
+    const foodTile = this.tiles.get(tile)
+    foodTile.type = 'food'
+    this.foodTile = foodTile
+
+    // todo: this is duplicated in ant.js
+    const { x, y } = foodTile.center().add(foodTile.toPoint())
+    this.draw
+      .circle(foodTile.width() * 0.8, foodTile.height() * 0.8)
+      .addClass('food')
+      .center(x, y)
+
+    return this
+  }
+
   tick() {
     this.ants.forEach(ant => {
-      ant.explore()
+      ant.tick()
     })
     return this
   }
@@ -58,8 +80,17 @@ export class World {
       return this.nestTile
     }
 
+    if (tile.equals(this.foodTile)) {
+      return this.foodTile
+    }
+
     if (this.ants.length > 1) {
       return this.ants.find(ant => ant.tile.equals(tile))
     }
+  }
+
+  // returns first tile the ant should go to in order to return to the nest
+  _tileTowardsNest(tile) {
+    return this.tiles.hexesBetween(tile, this.nestTile)[1]
   }
 }

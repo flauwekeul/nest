@@ -1,6 +1,9 @@
 .ant {
   fill: #333;
 }
+.ant--carrying {
+  fill: #993;
+}
 
 .filler {
   fill: none;

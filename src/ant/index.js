@@ -10,13 +10,16 @@ export class Ant {
     draw,
     tile,
     direction = 0,
-    surroundingTiles = () => { }
+    surroundingTiles = () => { },
+    tileTowardsNest = () => { },
   } = {}) {
     this.draw = draw
     this.tile = tile
     this._setDirection(direction)
     this.surroundingTiles = surroundingTiles
+    this.tileTowardsNest = tileTowardsNest
     this.lastTurnDirection = Math.random() < 0.5 ? -1 : 1
+    this._currentActivity = () => this.explore()
   }
 
   render() {
@@ -25,7 +28,8 @@ export class Ant {
       .addClass('ant')
       .size(40)
       .center(0, 0)
-      .rotate(this.direction * 60)
+      // add 2 to direction to make it point the same way as a (flat) honeycomb hex
+      .rotate((this.direction + 2) * 60)
     // create a filler rectangle to make the group occupy the same space as a tile
     const filler = this.draw
       .rect(this.tile.width(), this.tile.height())
@@ -40,9 +44,12 @@ export class Ant {
     return this
   }
 
-  // todo: also move to tile to the left and right of the tile in front?
-  move() {
-    this.tile = this._tileInFront()
+  tick() {
+    this._currentActivity()
+  }
+
+  move(tile) {
+    this.tile = tile
     const { x, y } = this._tileToPoint()
     this.svg
       .animate({ duration: animationDuration, ease: '-' })
@@ -68,14 +75,46 @@ export class Ant {
     }
 
     const tileInFront = this._tileInFront()
+    // todo: make prettier
+    if (tileInFront && tileInFront.contents && tileInFront.contents.type === 'food') {
+      return this._currentActivity = () => this.take(tileInFront.contents)
+    }
+
+    this._attemptMove(tileInFront)
+  }
+
+  take(contents) {
+    this.carrying = contents
+    this.svg
+      .select('.ant')
+      // todo: add something in jaws of ant to show it's carrying something
+      .addClass('ant--carrying')
+    this._currentActivity = () => this.returnToNest()
+  }
+
+  returnToNest() {
+    if (Math.random() < 0.2) {
+      return this._attemptMove()
+    }
+
+    // todo: follow pheromone track
+    const tileTowardsNest = this.tileTowardsNest(this.tile)
+    const tileInFront = this._tileInFront()
+    tileTowardsNest.equals(tileInFront)
+      ? this._attemptMove(tileInFront)
+      // todo: turn towards nest instead of always lastTurnDirection
+      : this.turn(this.lastTurnDirection)
+  }
+
+  _attemptMove(tileInFront = this._tileInFront()) {
     // when the ant can move forward: 80% chance it will
     if (tileInFront && !tileInFront.contents && Math.random() > 0.2) {
-      this.move()
-    } else {
-      // 80% chance to turn the same direction as last time
-      this.lastTurnDirection *= Math.random() > 0.2 ? 1 : -1
-      this.turn(this.lastTurnDirection)
+      return this.move(tileInFront)
     }
+
+    // 80% chance to turn the same direction as last time
+    this.lastTurnDirection *= Math.random() > 0.2 ? 1 : -1
+    this.turn(this.lastTurnDirection)
   }
 
   _tileToPoint() {
@@ -87,7 +126,6 @@ export class Ant {
   }
 
   _tileInFront() {
-    // subtract 2 from the direction, because for a honeycomb grid of flat hexes, the 0 direction is "South East"
-    return this.surroundingTiles({ tile: this.tile, direction: this.direction - 2 })[0]
+    return this.surroundingTiles({ tile: this.tile, direction: this.direction })[0] || null
   }
 }
