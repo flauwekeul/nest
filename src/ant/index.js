@@ -1,9 +1,9 @@
-import { SETTINGS } from '../settings';
+import { PHEROMONE_DROP, TICK_INTERVAL, TILE_TYPES } from '../settings';
 import { signedModulo } from '../utils';
 import './ant.css';
 
 // a little shorter than the tick interval to make sure the animation always finishes before the next tick
-const animationDuration = SETTINGS.tickInterval - 10
+const animationDuration = TICK_INTERVAL - 10
 
 export class Ant {
   constructor({
@@ -46,6 +46,7 @@ export class Ant {
 
   tick() {
     this._currentActivity()
+    return this
   }
 
   move(tile) {
@@ -68,19 +69,26 @@ export class Ant {
     return this
   }
 
+  leavePheromone() {
+    this.tile.addPheromone(PHEROMONE_DROP)
+    return this
+  }
+
   explore() {
     // 10% chance to do nothing
     if (Math.random() < 0.1) {
       return
     }
 
+    // todo: consider all surrounding tiles, not just the one in front
     const tileInFront = this._tileInFront()
-    // todo: make prettier
-    if (tileInFront && tileInFront.contents && tileInFront.contents.type === 'food') {
-      return this._currentActivity = () => this.take(tileInFront.contents)
+    // todo: take chunk of food
+    if (tileInFront && tileInFront.food) {
+      return this._currentActivity = () => this.take(tileInFront.food)
     }
 
     this._attemptMove(tileInFront)
+    return this
   }
 
   take(contents) {
@@ -90,26 +98,37 @@ export class Ant {
       // todo: add something in jaws of ant to show it's carrying something
       .addClass('ant--carrying')
     this._currentActivity = () => this.returnToNest()
+
+    return this
   }
 
   returnToNest() {
+    const tileInFront = this._tileInFront()
+    if (tileInFront && tileInFront.type === TILE_TYPES.NEST) {
+      return console.log('at nest');
+    }
+
+    // 20% chance to just (attempt to) move forwards
     if (Math.random() < 0.2) {
-      return this._attemptMove()
+      return this._attemptMove(tileInFront)
     }
 
     // todo: follow pheromone track
     const tileTowardsNest = this.tileTowardsNest(this.tile)
-    const tileInFront = this._tileInFront()
     tileTowardsNest.equals(tileInFront)
       ? this._attemptMove(tileInFront)
       // todo: turn towards nest instead of always lastTurnDirection
       : this.turn(this.lastTurnDirection)
+
+    return this
   }
 
-  _attemptMove(tileInFront = this._tileInFront()) {
+  _attemptMove(tile) {
     // when the ant can move forward: 80% chance it will
-    if (tileInFront && !tileInFront.contents && Math.random() > 0.2) {
-      return this.move(tileInFront)
+    // todo: don't move if tile contains another ant?
+    if (tile && Math.random() > 0.2) {
+      this.leavePheromone()
+      return this.move(tile)
     }
 
     // 80% chance to turn the same direction as last time
@@ -126,6 +145,6 @@ export class Ant {
   }
 
   _tileInFront() {
-    return this.surroundingTiles({ tile: this.tile, direction: this.direction })[0] || null
+    return this.surroundingTiles({ tile: this.tile, direction: this.direction })[0]
   }
 }

@@ -1,6 +1,8 @@
 import svgjs from 'svg.js';
 import { Ant } from '../ant';
+import { Food } from '../food';
 import { Grid } from '../grid';
+import { MAX_PHEROMONE, TILE_TYPES } from '../settings';
 import './world.css';
 
 export class World {
@@ -13,7 +15,8 @@ export class World {
 
     // todo: make prettier
     const _nestTile = this.tiles.get(nestTile)
-    _nestTile.type = 'nest'
+    _nestTile.type = TILE_TYPES.NEST
+    _nestTile.pheromone = MAX_PHEROMONE
     this.nestTile = _nestTile
     this.ants = []
   }
@@ -31,8 +34,9 @@ export class World {
   addAnt({ direction = 0 } = {}) {
     const ant = new Ant({
       draw: this.draw,
-      surroundingTiles: this._surroundingTiles.bind(this),
-      tileTowardsNest: this._tileTowardsNest.bind(this),
+      surroundingTiles: ({ tile, direction } = {}) => this.tiles.neighborsOf(tile, direction),
+      // returns first tile the ant should go to in order to return to the nest
+      tileTowardsNest: tile => this.tiles.hexesBetween(tile, this.nestTile)[1],
       tile: this.nestTile,
       direction,
     })
@@ -44,10 +48,8 @@ export class World {
   }
 
   addFood({ tile } = {}) {
-    // todo: make prettier
     const foodTile = this.tiles.get(tile)
-    foodTile.type = 'food'
-    this.foodTile = foodTile
+    foodTile.food = new Food()
 
     // todo: this is duplicated in ant.js
     const { x, y } = foodTile.center().add(foodTile.toPoint())
@@ -63,34 +65,8 @@ export class World {
     this.ants.forEach(ant => {
       ant.tick()
     })
+    this.grid.tick()
+
     return this
-  }
-
-  _surroundingTiles({ tile, direction } = {}) {
-    return this.tiles
-      .neighborsOf(tile, direction)
-      .map(tile => {
-        tile.contents = this._contentsForTile(tile)
-        return tile
-      })
-  }
-
-  _contentsForTile(tile) {
-    if (tile.equals(this.nestTile)) {
-      return this.nestTile
-    }
-
-    if (tile.equals(this.foodTile)) {
-      return this.foodTile
-    }
-
-    if (this.ants.length > 1) {
-      return this.ants.find(ant => ant.tile.equals(tile))
-    }
-  }
-
-  // returns first tile the ant should go to in order to return to the nest
-  _tileTowardsNest(tile) {
-    return this.tiles.hexesBetween(tile, this.nestTile)[1]
   }
 }

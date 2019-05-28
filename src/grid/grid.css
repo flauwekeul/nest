@@ -3,7 +3,9 @@
   /* stroke-width: 3px;
   stroke: #eee; */
 }
-
 .hex.hex--nest {
   fill: #333;
+}
+.hex.hex--pheromone {
+  fill: red;
 }

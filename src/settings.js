@@ -1,3 +1,10 @@
-export const SETTINGS = {
-  tickInterval: 200
+export const TILE_TYPES = {
+  FLOOR: 'FLOOR',
+  NEST: 'NEST',
 }
+
+export const TICK_INTERVAL = 200
+
+export const MAX_PHEROMONE = 1000
+export const PHEROMONE_TICK = -2
+export const PHEROMONE_DROP = 40

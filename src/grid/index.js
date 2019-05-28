@@ -1,4 +1,5 @@
 import { defineGrid, extendHex } from 'honeycomb-grid';
+import { MAX_PHEROMONE, PHEROMONE_TICK, TILE_TYPES } from '../settings';
 import './grid.css';
 
 export class Grid {
@@ -6,7 +7,16 @@ export class Grid {
     this.draw = draw
     this.nestHex = nestHex
 
-    const Hex = extendHex({ orientation: 'flat', size: 20 })
+    const Hex = extendHex({
+      orientation: 'flat',
+      size: 20,
+      type: TILE_TYPES.FLOOR,
+      pheromone: 0,
+      addPheromone(amount = 0) {
+        amount += this.pheromone
+        this.pheromone = amount < 1 ? 0 : Math.min(amount, MAX_PHEROMONE)
+      }
+    })
     const Grid = defineGrid(Hex)
     this.hexes = Grid.rectangle({ width, height })
 
@@ -18,21 +28,21 @@ export class Grid {
   render({ debug = false } = {}) {
     this.hexes.forEach(hex => {
       const { x, y } = hex.toPoint()
-      const hexSvg = this.draw
+      const useEl = this.draw
         .use(this.hexSymbol)
         .addClass('hex')
         .translate(x, y)
 
       if (hex.equals(this.nestHex)) {
-        hexSvg.addClass('hex hex--nest')
+        useEl.addClass('hex--nest')
       }
 
-      const hexGroup = this.draw.group().add(hexSvg)
+      const groupEl = this.draw.group().add(useEl)
 
       if (debug) {
         const fontSize = 11
         const position = hex.center().add(x, y)
-        const coordinates = this.draw
+        const coordinatesEl = this.draw
           .text(`${hex.x},${hex.y}`)
           .font({
             size: fontSize,
@@ -41,8 +51,26 @@ export class Grid {
             fill: '#ccc'
           })
           .translate(position.x, position.y - fontSize)
-        hexGroup.add(coordinates)
+        groupEl.add(coordinatesEl)
       }
+
+      hex.svg = groupEl
+    })
+
+    return this
+  }
+
+  tick() {
+    this.hexes.forEach((hex, i) => {
+      if (hex.type === TILE_TYPES.NEST || hex.pheromone < 1) {
+        return
+      }
+
+      hex.svg
+        .select('.hex')
+        .addClass('hex--pheromone')
+        .fill({ opacity: this.hexes[i].pheromone / MAX_PHEROMONE })
+      hex.addPheromone(PHEROMONE_TICK)
     })
 
     return this
