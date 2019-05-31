@@ -11,10 +11,16 @@ export class Grid {
       orientation: 'flat',
       size: 20,
       type: TILE_TYPES.FLOOR,
-      pheromone: 0,
-      addPheromone(amount = 0) {
-        amount += this.pheromone
-        this.pheromone = amount < 1 ? 0 : Math.min(amount, MAX_PHEROMONE)
+      nestPheromone: 0,
+      foodPheromone: 0,
+      // todo: dedupe code
+      addNestPheromone(amount = 0) {
+        amount += this.nestPheromone
+        this.nestPheromone = amount < 1 ? 0 : Math.min(amount, MAX_PHEROMONE)
+      },
+      addFoodPheromone(amount = 0) {
+        amount += this.foodPheromone
+        this.foodPheromone = amount < 1 ? 0 : Math.min(amount, MAX_PHEROMONE)
       }
     })
     const Grid = defineGrid(Hex)
@@ -43,8 +49,8 @@ export class Grid {
         const fontSize = 11
         const position = hex.center().add(x, y)
         const coordinatesEl = this.draw
-          // .text(`${hex.x},${hex.y}`)
-          .text(`${hex.q},${hex.r},${hex.s}`)
+          .text(`${hex.x},${hex.y}`)
+          // .text(`${hex.q},${hex.r},${hex.s}`)
           .font({
             size: fontSize,
             anchor: 'middle',
@@ -63,15 +69,17 @@ export class Grid {
 
   tick() {
     this.hexes.forEach((hex, i) => {
-      if (hex.type === TILE_TYPES.NEST || hex.pheromone < 1) {
+      if (hex.type === TILE_TYPES.NEST || (hex.nestPheromone < 1 && hex.foodPheromone < 1)) {
         return
       }
 
       hex.svg
         .select('.hex')
         .addClass('hex--pheromone')
-        .fill({ opacity: this.hexes[i].pheromone / MAX_PHEROMONE })
-      hex.addPheromone(PHEROMONE_TICK)
+        // todo: don't just add pheromones
+        .fill({ opacity: (this.hexes[i].nestPheromone + this.hexes[i].foodPheromone) / MAX_PHEROMONE })
+      hex.addNestPheromone(PHEROMONE_TICK)
+      hex.addFoodPheromone(PHEROMONE_TICK)
     })
 
     return this

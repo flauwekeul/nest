@@ -84,11 +84,6 @@ export class Ant {
     return this
   }
 
-  leavePheromone() {
-    this.tile.addPheromone(PHEROMONE_DROP)
-    return this
-  }
-
   explore() {
     // 10% chance to do nothing
     if (Math.random() < 0.1) {
@@ -98,7 +93,7 @@ export class Ant {
     const tileInFront = this._tileInFront()
     // todo: take chunk of food
     if (tileInFront && tileInFront.food) {
-      return this._currentActivity = () => this.take(tileInFront.food)
+      return this.take(tileInFront.food)
     }
 
     // todo: honeycomb: grid.neighborsOf() shouldn't filter out empty hexes and ideally should map each direction to a hex
@@ -122,12 +117,23 @@ export class Ant {
     return this
   }
 
+  drop() {
+    // todo: do something with dropped food
+    this.carrying = null
+    this.svg
+      .select('.ant')
+      .removeClass('ant--carrying')
+    this._currentActivity = () => this.returnToFood()
+
+    return this
+  }
+
   returnToNest() {
     // todo: leave pheromone on way back to nest
     const tileInFront = this._tileInFront()
 
     if (tileInFront && tileInFront.type === TILE_TYPES.NEST) {
-      return console.log('at nest')
+      return this.drop()
     }
 
     const tilesInFront = this._tilesInFront()
@@ -136,28 +142,38 @@ export class Ant {
       return this.turn(this.lastTurnDirection)
     }
 
-    const tilesWithPheromone = tilesInFront.filter(tile => tile.pheromone > 0)
+    const tilesWithNestPheromone = tilesInFront.filter(tile => tile.nestPheromone > 0)
 
-    if (tilesWithPheromone.length === 0) {
+    if (tilesWithNestPheromone.length === 0) {
+      // todo: prevent ant from turning endlessly
       return this.turn(this.lastTurnDirection)
     }
 
-    const tileWithMostPheromone = tilesWithPheromone.reduce((prevTile, tile) =>
-      tile.pheromone > prevTile.pheromone ? tile : prevTile
-    )
+    const targetTile = tilesWithNestPheromone.reduce((previousTile, currentTile) => {
+      const netCurrentPheromone = Math.abs(currentTile.nestPheromone - currentTile.foodPheromone)
+      const netPreviousPheromone = Math.abs(previousTile.nestPheromone - previousTile.foodPheromone)
+      return netCurrentPheromone >= netPreviousPheromone ? currentTile : previousTile
+    })
 
-    if (tileWithMostPheromone.equals(tileInFront)) {
+    if (targetTile.equals(tileInFront)) {
+      this.tile.addFoodPheromone(PHEROMONE_DROP)
+      // fixme: fix bug when there is no tile in front
       return this.move(tileInFront)
     } else {
-      return this.turnTowards(tileWithMostPheromone)
+      return this.turnTowards(targetTile)
     }
   }
 
+  returnToFood() {
+    // todo: implement
+  }
+
+  // todo: this is too tightly coupled to exploring
   _attemptMove(tile) {
     // when the ant can move forward: 80% chance it will
     // todo: don't move if tile contains another ant?
     if (tile && Math.random() > 0.2) {
-      this.leavePheromone()
+      this.tile.addNestPheromone(PHEROMONE_DROP)
       return this.move(tile)
     }
 

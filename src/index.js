@@ -4,10 +4,10 @@ import { Ticker } from './utils/ticker';
 import { World } from './world';
 
 const rootElement = document.getElementById('main')
-const world = new World({ el: rootElement, width: 10, height: 6, nestTile: [1, 1] })
+const world = new World({ el: rootElement, width: 6, height: 6, nestTile: [0, 0] })
 world
   .render({ debug: true })
-  .addFood({ tile: [7, 4] })
+  .addFood({ tile: [5, 5] })
 // .addFood({ tile: [12, 1] })
 // .addFood({ tile: [16, 9] })
 

@@ -16,7 +16,7 @@ export class World {
     // todo: make prettier
     const _nestTile = this.tiles.get(nestTile)
     _nestTile.type = TILE_TYPES.NEST
-    _nestTile.pheromone = MAX_PHEROMONE
+    _nestTile.nestPheromone = MAX_PHEROMONE
     this.nestTile = _nestTile
     this.ants = []
   }
