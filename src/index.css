@@ -4,10 +4,37 @@ body {
   padding: 0;
 }
 
+body {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
 svg {
   overflow: visible;
 }
 
+button {
+  display: inline-block;
+  border-radius: 6px;
+  border: none;
+  background-color: rgb(41, 119, 182);
+  color: white;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: inherit;
+  outline: none;
+}
+button:disabled {
+  cursor: not-allowed;
+  background-color: rgb(179, 179, 179);
+}
+
 #main {
   margin: 1vh auto;
+}
+
+#menu {
+  position: absolute;
+  left: 2vmin;
+  top: 2vmin;
 }
