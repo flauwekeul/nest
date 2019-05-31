@@ -70,23 +70,18 @@ export class Ant {
   }
 
   turnTowards({ q, r, s }) {
-    // todo: refactor
-    switch (this.direction) {
-      case 0:
-        return this.turn(Math.abs(r) - Math.abs(this.tile.r))
-      case 1:
-        return this.turn(Math.abs(this.tile.q) - Math.abs(q))
-      case 2:
-        return this.turn(Math.abs(this.tile.s) - Math.abs(s))
-      case 3:
-        return this.turn(Math.abs(this.tile.r) - Math.abs(r))
-      case 4:
-        return this.turn(Math.abs(q) - Math.abs(this.tile.q))
-      case 5:
-        return this.turn(Math.abs(q) - Math.abs(this.tile.q))
-      default:
-        return this.turn(this.lastTurnDirection)
+    const turnDirectionMap = {
+      0: r - this.tile.r,
+      1: this.tile.q - q,
+      2: s - this.tile.s,
+      3: this.tile.r - r,
+      4: q - this.tile.q,
+      5: this.tile.s - s
     }
+    const turnDirection = turnDirectionMap[this.direction] || this.lastTurnDirection
+    this.turn(turnDirection)
+
+    return this
   }
 
   leavePheromone() {
