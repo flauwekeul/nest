@@ -34,7 +34,7 @@ export class World {
   addAnt({ direction = 0 } = {}) {
     const ant = new Ant({
       draw: this.draw,
-      surroundingTiles: ({ tile, direction } = {}) => this.tiles.neighborsOf(tile, direction),
+      surroundingTiles: (tile, direction) => this.tiles.neighborsOf(tile, direction),
       // returns first tile the ant should go to in order to return to the nest
       tileTowardsNest: tile => this.tiles.hexesBetween(tile, this.nestTile)[1],
       tile: this.nestTile,

@@ -69,6 +69,26 @@ export class Ant {
     return this
   }
 
+  turnTowards({ q, r, s }) {
+    // todo: refactor
+    switch (this.direction) {
+      case 0:
+        return this.turn(Math.abs(r) - Math.abs(this.tile.r))
+      case 1:
+        return this.turn(Math.abs(this.tile.q) - Math.abs(q))
+      case 2:
+        return this.turn(Math.abs(this.tile.s) - Math.abs(s))
+      case 3:
+        return this.turn(Math.abs(this.tile.r) - Math.abs(r))
+      case 4:
+        return this.turn(Math.abs(q) - Math.abs(this.tile.q))
+      case 5:
+        return this.turn(Math.abs(q) - Math.abs(this.tile.q))
+      default:
+        return this.turn(this.lastTurnDirection)
+    }
+  }
+
   leavePheromone() {
     this.tile.addPheromone(PHEROMONE_DROP)
     return this
@@ -104,23 +124,33 @@ export class Ant {
 
   returnToNest() {
     const tileInFront = this._tileInFront()
+
     if (tileInFront && tileInFront.type === TILE_TYPES.NEST) {
-      return console.log('at nest');
+      return console.log('at nest')
     }
 
-    // 20% chance to just (attempt to) move forwards
-    if (Math.random() < 0.2) {
-      return this._attemptMove(tileInFront)
+    const { direction } = this
+    const tilesInFront = this.surroundingTiles(this.tile, [direction - 1, direction, direction + 1])
+
+    if (tilesInFront.length === 0) {
+      return this.turn(this.lastTurnDirection)
     }
 
-    // todo: follow pheromone track
-    const tileTowardsNest = this.tileTowardsNest(this.tile)
-    tileTowardsNest.equals(tileInFront)
-      ? this._attemptMove(tileInFront)
-      // todo: turn towards nest instead of always lastTurnDirection
-      : this.turn(this.lastTurnDirection)
+    const tilesWithPheromone = tilesInFront.filter(tile => tile.pheromone > 0)
 
-    return this
+    if (tilesWithPheromone.length === 0) {
+      return this.turn(this.lastTurnDirection)
+    }
+
+    const tileWithMostPheromone = tilesWithPheromone.reduce((prevTile, tile) =>
+      tile.pheromone > prevTile.pheromone ? tile : prevTile
+    )
+
+    if (tileWithMostPheromone.equals(tileInFront)) {
+      return this.move(tileInFront)
+    } else {
+      return this.turnTowards(tileWithMostPheromone)
+    }
   }
 
   _attemptMove(tile) {
@@ -145,6 +175,6 @@ export class Ant {
   }
 
   _tileInFront() {
-    return this.surroundingTiles({ tile: this.tile, direction: this.direction })[0]
+    return this.surroundingTiles(this.tile, this.direction)[0]
   }
 }

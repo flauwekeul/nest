@@ -43,7 +43,8 @@ export class Grid {
         const fontSize = 11
         const position = hex.center().add(x, y)
         const coordinatesEl = this.draw
-          .text(`${hex.x},${hex.y}`)
+          // .text(`${hex.x},${hex.y}`)
+          .text(`${hex.q},${hex.r},${hex.s}`)
           .font({
             size: fontSize,
             anchor: 'middle',
