@@ -95,11 +95,16 @@ export class Ant {
       return
     }
 
-    // todo: consider all surrounding tiles, not just the one in front
     const tileInFront = this._tileInFront()
     // todo: take chunk of food
     if (tileInFront && tileInFront.food) {
       return this._currentActivity = () => this.take(tileInFront.food)
+    }
+
+    // todo: honeycomb: grid.neighborsOf() shouldn't filter out empty hexes and ideally should map each direction to a hex
+    const tileInFrontContainingFood = this._tilesInFront().find(tile => tile.food)
+    if (tileInFrontContainingFood) {
+      return this.turnTowards(tileInFrontContainingFood)
     }
 
     this._attemptMove(tileInFront)
@@ -118,14 +123,14 @@ export class Ant {
   }
 
   returnToNest() {
+    // todo: leave pheromone on way back to nest
     const tileInFront = this._tileInFront()
 
     if (tileInFront && tileInFront.type === TILE_TYPES.NEST) {
       return console.log('at nest')
     }
 
-    const { direction } = this
-    const tilesInFront = this.surroundingTiles(this.tile, [direction - 1, direction, direction + 1])
+    const tilesInFront = this._tilesInFront()
 
     if (tilesInFront.length === 0) {
       return this.turn(this.lastTurnDirection)
@@ -171,5 +176,10 @@ export class Ant {
 
   _tileInFront() {
     return this.surroundingTiles(this.tile, this.direction)[0]
+  }
+
+  _tilesInFront() {
+    const { direction } = this
+    return this.surroundingTiles(this.tile, [direction - 1, direction, direction + 1])
   }
 }

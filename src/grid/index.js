@@ -20,7 +20,7 @@ export class Grid {
     const Grid = defineGrid(Hex)
     this.hexes = Grid.rectangle({ width, height })
 
-    // todo: corners should be on Hex?
+    // todo: honeycomb: corners should be on Hex?
     const hexCorners = this.hexes[0].corners()
     this.hexSymbol = draw.symbol().polygon(hexCorners.map(({ x, y }) => `${x},${y}`))
   }
