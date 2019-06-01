@@ -43,6 +43,12 @@ export class Ant {
   }
 
   tick() {
+    // 10% chance to do nothing
+    // todo: use this to "sense" multiple tiles?
+    if (Math.random() < 0.1) {
+      return this
+    }
+
     this._currentActivity()
     return this
   }
@@ -113,51 +119,36 @@ export class Ant {
   // BEHAVIORS
 
   explore() {
-    // console.clear()
-    // 10% chance to do nothing
-    // todo: use this to "sense" multiple tiles?
-    if (Math.random() < 0.1) {
-      return this
-    }
-
-    const tileInFront = this._tileInFront()
-    if (tileInFront && tileInFront.food) {
-      return this.take()
-    }
-
+    // todo: dedupe following 4 lines
     const tilesInFront = this._tilesInFront()
-    const { length } = tilesInFront
-
-    if (length === 0) {
+    if (tilesInFront.length === 0) {
       return this.turn(this._randomDirection())
     }
 
-    let priorityTile
-    if (length === 1) {
-      priorityTile = tilesInFront[0]
-      // console.log('single tile in front', priorityTile);
-    } else if (!tilesInFront.some(({ food, pheromone }) => food || pheromone > 0)) {
-      priorityTile = tileInFront && Math.random() > 0.3
-        ? tileInFront
-        : tilesInFront[randomNumber(0, length - 1)]
-      // console.log('nothing special', priorityTile);
-    } else {
-      // fixme: find a way for ants to go the right direction on the trail (they often go towards the nest)
-      priorityTile = tilesInFront.sort((a, b) => a.food ? -1 : b.food ? 1 : b.pheromone - a.pheromone)[0]
-      // console.log('oh yeah', tilesInFront, priorityTile);
+    if (tilesInFront.some(({ food, pheromone }) => food || pheromone > 0)) {
+      return this._currentActivity = () => this.goToFood()
     }
 
-    if (priorityTile.equals(tileInFront)) {
-      return this.move(priorityTile)
+    const tileInFront = this._tileInFront()
+    const nextTile = tileInFront && Math.random() > 0.3
+      ? tileInFront
+      : tilesInFront[randomNumber(0, tilesInFront.length - 1)]
+    if (nextTile.equals(tileInFront)) {
+      return this.move(nextTile)
     }
 
-    return this.turnTowards(priorityTile)
+    return this.turnTowards(nextTile)
   }
 
+  // todo: randomly go different direction to make it less perfect?
+  // todo: when there's already a trail, follow it instead of using tileTowardsNest?
   returnToNest() {
-    // fixme: when there's already a trail, follow it instead of using tileTowardsNest
-    // fixme: randomly go different direction to make it less perfect
-    const tileTowardsNest = this._tilesInFront().sort((a, b) => this._distanceToNest(a) - this._distanceToNest(b))[0]
+    const tilesInFront = this._tilesInFront()
+    if (tilesInFront.length === 0) {
+      return this.turn(this._randomDirection())
+    }
+
+    const tileTowardsNest = tilesInFront.sort((a, b) => this._distanceToNest(a) - this._distanceToNest(b))[0]
 
     if (this.tile.type === TILE_TYPES.NEST) {
       return this.drop()
@@ -169,11 +160,41 @@ export class Ant {
       return this.move(tileInFront)
     }
 
-    this.turnTowards(tileTowardsNest)
+    return this.turnTowards(tileTowardsNest)
   }
 
   goToFood() {
-    // fixme: implement
+    const tilesInFront = this._tilesInFront()
+    if (tilesInFront.length === 0) {
+      return this.turn(this._randomDirection())
+    }
+
+    const tileInFront = this._tileInFront()
+    if (tileInFront && tileInFront.food) {
+      return this.take()
+    }
+
+    const nextTile = tilesInFront.sort((a, b) => {
+      if (a.food || b.food) {
+        return a.food ? -1 : 1
+      }
+
+      // fixme: make less complex
+      const pheromoneA = a.pheromone
+      const pheromoneB = b.pheromone
+      const totalPheromone = pheromoneA + pheromoneB
+      const distanceToNestA = this._distanceToNest(a)
+      const distanceToNestB = this._distanceToNest(b)
+      const totalDistanceToNest = distanceToNestA + distanceToNestB
+      const normalizedA = (pheromoneA / totalPheromone) + (distanceToNestA / totalDistanceToNest) - 1
+      const normalizedB = (pheromoneB / totalPheromone) + (distanceToNestB / totalDistanceToNest) - 1
+      return normalizedB - normalizedA
+    })[0]
+    if (nextTile.equals(tileInFront)) {
+      return this.move(nextTile)
+    }
+
+    return this.turnTowards(nextTile)
   }
 
   // PRIVATES
@@ -199,6 +220,7 @@ export class Ant {
     return this.surroundingTiles(this.tile, [direction - 1, direction, direction + 1])
   }
 
+  // todo: memoize this (or just set it on each tile)
   _distanceToNest(tile) {
     return this.nestTile.distance(tile)
   }
