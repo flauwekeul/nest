@@ -27,6 +27,7 @@ export class World {
     this.grid = new Grid({ draw: this.draw, nestHex: nestTile, width, height })
 
     // todo: make prettier
+    // todo: add pheromone to tiles surrounding the nest
     const _nestTile = this.tiles.get(nestTile)
     _nestTile.type = TILE_TYPES.NEST
     _nestTile.nestPheromone = MAX_PHEROMONE
