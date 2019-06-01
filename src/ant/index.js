@@ -1,5 +1,5 @@
-import { MAX_PHEROMONE, PHEROMONE_DROP, TICK_INTERVAL, TILE_TYPES } from '../settings';
-import { signedModulo } from '../utils';
+import { PHEROMONE_DROP, TICK_INTERVAL } from '../settings';
+import { randomNumber, signedModulo } from '../utils';
 import './ant.css';
 
 // a little shorter than the tick interval to make sure the animation always finishes before the next tick
@@ -10,7 +10,7 @@ export class Ant {
     draw,
     tile,
     direction = 0,
-    surroundingTiles = () => { },
+    surroundingTiles = () => [],
     tileTowardsNest = () => { },
   } = {}) {
     this.draw = draw
@@ -18,7 +18,7 @@ export class Ant {
     this._setDirection(direction)
     this.surroundingTiles = surroundingTiles
     this.tileTowardsNest = tileTowardsNest
-    // todo: lastTurnDirection isn't used right
+    // fixme: lastTurnDirection isn't used right
     this.lastTurnDirection = Math.random() < 0.5 ? -1 : 1
     this._currentActivity = () => this.explore()
   }
@@ -108,7 +108,7 @@ export class Ant {
     this.svg
       .select('.ant')
       .removeClass('ant--carrying')
-    this._currentActivity = () => this.returnToFood()
+    this._currentActivity = () => this.goToFood()
 
     return this
   }
@@ -116,58 +116,68 @@ export class Ant {
   // BEHAVIORS
 
   explore() {
+    // console.clear()
     // 10% chance to do nothing
+    // todo: use this to "sense" multiple tiles?
     if (Math.random() < 0.1) {
       return this
     }
 
-    const [leftTile, frontTile, rightTile] = this._tilesInFront()
-
-    if (frontTile && frontTile.food) {
-      return this._currentActivity = () => this.take()
+    const tileInFront = this._tileInFront()
+    if (tileInFront && tileInFront.food) {
+      return this.take()
     }
 
-    const priorityTile = [frontTile, leftTile, rightTile].find(tile =>
-      tile && (tile.food || tile.foodPheromone > 0 || tile.nestPheromone < MAX_PHEROMONE * 0.1)
-    )
-    if (Math.random() > 0.8 || !priorityTile || !frontTile) {
+    const tilesInFront = this._tilesInFront()
+    const { length } = tilesInFront
+
+    if (length === 0) {
       this.lastTurnDirection *= Math.random() > 0.2 ? 1 : -1
       return this.turn(this.lastTurnDirection)
     }
 
-    if (priorityTile.equals(frontTile) || Math.random() > 0.2) {
-      this.tile.addNestPheromone(PHEROMONE_DROP)
-      return this.move(frontTile)
+    let priorityTile
+    if (length === 1) {
+      priorityTile = tilesInFront[0]
+      // console.log('single tile in front', priorityTile);
+    } else if (!tilesInFront.some(({ food, pheromone }) => food || pheromone > 0)) {
+      priorityTile = tileInFront && Math.random() > 0.2
+        ? tileInFront
+        : tilesInFront[randomNumber(0, length - 1)]
+      // console.log('nothing special', priorityTile);
+    } else {
+      // fixme: find a way for ants to go the right direction on the trail (they often go towards the nest)
+      priorityTile = tilesInFront.sort((a, b) => a.food ? -1 : b.food ? 1 : b.pheromone - a.pheromone)[0]
+      // console.log('oh yeah', tilesInFront, priorityTile);
+    }
+
+    if (priorityTile.equals(tileInFront)) {
+      return this.move(priorityTile)
     }
 
     return this.turnTowards(priorityTile)
   }
 
   returnToNest() {
-    const [leftTile, frontTile, rightTile] = this._tilesInFront()
+    // fixme: randomly go different direction to make it less perfect
+    const tileInFront = this._tileInFront()
+    // fixme: when there's already a trail, follow it instead of using tileTowardsNest
+    const tileTowardsNest = this.tileTowardsNest(this.tile)
 
-    if (frontTile && frontTile.type === TILE_TYPES.NEST) {
+    if (!tileTowardsNest) {
       return this.drop()
     }
 
-    const priorityTile = [frontTile, leftTile, rightTile]
-      .filter(Boolean)
-      .sort((a, b) => b.nestPheromone - a.nestPheromone)[0]
-    if (!priorityTile || !frontTile) {
-      this.lastTurnDirection *= Math.random() > 0.2 ? 1 : -1
-      return this.turn(this.lastTurnDirection)
+    if (tileInFront && tileTowardsNest.equals(tileInFront)) {
+      this.tile.addPheromone(PHEROMONE_DROP)
+      return this.move(tileInFront)
     }
 
-    if (priorityTile.equals(frontTile)) {
-      this.tile.addFoodPheromone(PHEROMONE_DROP)
-      return this.move(frontTile)
-    } else {
-      return this.turnTowards(priorityTile)
-    }
+    this.turnTowards(tileTowardsNest)
   }
 
-  returnToFood() {
-    // todo: implement
+  goToFood() {
+    // fixme: implement
   }
 
   // PRIVATES

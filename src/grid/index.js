@@ -11,16 +11,10 @@ export class Grid {
       orientation: 'flat',
       size: 20,
       type: TILE_TYPES.FLOOR,
-      nestPheromone: 0,
-      foodPheromone: 0,
-      // todo: dedupe code
-      addNestPheromone(amount = 0) {
-        amount += this.nestPheromone
-        this.nestPheromone = amount < 1 ? 0 : Math.min(amount, MAX_PHEROMONE)
-      },
-      addFoodPheromone(amount = 0) {
-        amount += this.foodPheromone
-        this.foodPheromone = amount < 1 ? 0 : Math.min(amount, MAX_PHEROMONE)
+      pheromone: 0,
+      addPheromone(amount = 0) {
+        amount += this.pheromone
+        this.pheromone = amount < 1 ? 0 : Math.min(amount, MAX_PHEROMONE)
       }
     })
     const Grid = defineGrid(Hex)
@@ -69,7 +63,7 @@ export class Grid {
 
   tick() {
     this.hexes.forEach((hex, i) => {
-      if (hex.type === TILE_TYPES.NEST || (hex.nestPheromone < 1 && hex.foodPheromone < 1)) {
+      if (hex.type === TILE_TYPES.NEST || hex.pheromone < 1) {
         return
       }
 
@@ -77,9 +71,8 @@ export class Grid {
         .select('.hex')
         .addClass('hex--pheromone')
         // todo: don't just add pheromones
-        .fill({ opacity: (this.hexes[i].nestPheromone + this.hexes[i].foodPheromone) / MAX_PHEROMONE })
-      hex.addNestPheromone(PHEROMONE_TICK)
-      hex.addFoodPheromone(PHEROMONE_TICK)
+        .fill({ opacity: this.hexes[i].pheromone / MAX_PHEROMONE })
+      hex.addPheromone(PHEROMONE_TICK)
     })
 
     return this

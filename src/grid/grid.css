@@ -4,7 +4,7 @@
   stroke: #eee; */
 }
 .hex.hex--nest {
-  fill: #333;
+  fill: #000;
 }
 .hex.hex--pheromone {
   fill: red;
