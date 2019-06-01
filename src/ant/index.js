@@ -18,8 +18,6 @@ export class Ant {
     this._setDirection(direction)
     this.surroundingTiles = surroundingTiles
     this.tileTowardsNest = tileTowardsNest
-    // fixme: lastTurnDirection isn't used right
-    this.lastTurnDirection = Math.random() < 0.5 ? -1 : 1
     this._currentActivity = () => this.explore()
   }
 
@@ -84,7 +82,7 @@ export class Ant {
       4: q - this.tile.q,
       5: this.tile.s - s
     }
-    const turnDirection = turnDirectionMap[this.direction] || this.lastTurnDirection
+    const turnDirection = turnDirectionMap[this.direction] || this._randomDirection()
     this.turn(turnDirection)
 
     return this
@@ -132,8 +130,7 @@ export class Ant {
     const { length } = tilesInFront
 
     if (length === 0) {
-      this.lastTurnDirection *= Math.random() > 0.2 ? 1 : -1
-      return this.turn(this.lastTurnDirection)
+      return this.turn(this._randomDirection())
     }
 
     let priorityTile
@@ -141,7 +138,7 @@ export class Ant {
       priorityTile = tilesInFront[0]
       // console.log('single tile in front', priorityTile);
     } else if (!tilesInFront.some(({ food, pheromone }) => food || pheromone > 0)) {
-      priorityTile = tileInFront && Math.random() > 0.2
+      priorityTile = tileInFront && Math.random() > 0.3
         ? tileInFront
         : tilesInFront[randomNumber(0, length - 1)]
       // console.log('nothing special', priorityTile);
@@ -188,6 +185,10 @@ export class Ant {
 
   _setDirection(direction = 0) {
     this.direction = signedModulo(direction, 6)
+  }
+
+  _randomDirection() {
+    return Math.random() > 0.5 ? 1 : -1
   }
 
   _tileInFront() {
