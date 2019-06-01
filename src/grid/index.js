@@ -40,7 +40,7 @@ export class Grid {
       const groupEl = this.draw.group().add(useEl)
 
       if (debug) {
-        const fontSize = 11
+        const fontSize = 10
         const position = hex.center().add(x, y)
         const coordinatesEl = this.draw
           .text(`${hex.x},${hex.y}`)

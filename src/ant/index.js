@@ -1,4 +1,4 @@
-import { PHEROMONE_DROP, TICK_INTERVAL } from '../settings';
+import { PHEROMONE_DROP, TICK_INTERVAL, TILE_TYPES } from '../settings';
 import { randomNumber, signedModulo } from '../utils';
 import './ant.css';
 
@@ -11,13 +11,12 @@ export class Ant {
     tile,
     direction = 0,
     surroundingTiles = () => [],
-    tileTowardsNest = () => { },
   } = {}) {
     this.draw = draw
     this.tile = tile
+    this.nestTile = tile
     this._setDirection(direction)
     this.surroundingTiles = surroundingTiles
-    this.tileTowardsNest = tileTowardsNest
     this._currentActivity = () => this.explore()
   }
 
@@ -156,15 +155,15 @@ export class Ant {
   }
 
   returnToNest() {
-    // fixme: randomly go different direction to make it less perfect
-    const tileInFront = this._tileInFront()
     // fixme: when there's already a trail, follow it instead of using tileTowardsNest
-    const tileTowardsNest = this.tileTowardsNest(this.tile)
+    // fixme: randomly go different direction to make it less perfect
+    const tileTowardsNest = this._tilesInFront().sort((a, b) => this._distanceToNest(a) - this._distanceToNest(b))[0]
 
-    if (!tileTowardsNest) {
+    if (this.tile.type === TILE_TYPES.NEST) {
       return this.drop()
     }
 
+    const tileInFront = this._tileInFront()
     if (tileInFront && tileTowardsNest.equals(tileInFront)) {
       this.tile.addPheromone(PHEROMONE_DROP)
       return this.move(tileInFront)
@@ -198,5 +197,9 @@ export class Ant {
   _tilesInFront() {
     const { direction } = this
     return this.surroundingTiles(this.tile, [direction - 1, direction, direction + 1])
+  }
+
+  _distanceToNest(tile) {
+    return this.nestTile.distance(tile)
   }
 }

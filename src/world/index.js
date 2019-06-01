@@ -53,7 +53,6 @@ export class World {
       //   return this.tiles.get(tile.cubeToCartesian({ q: tile.q + q, r: tile.r + r }))
       // }),
       // returns first tile the ant should go to in order to return to the nest
-      tileTowardsNest: tile => this.tiles.hexesBetween(tile, this.nestTile)[1],
       tile: this.nestTile,
       direction,
     })

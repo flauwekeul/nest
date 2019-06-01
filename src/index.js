@@ -4,11 +4,11 @@ import { Ticker } from './utils/ticker';
 import { World } from './world';
 
 const rootElement = document.getElementById('main')
-const world = new World({ el: rootElement, width: 20, height: 15, nestTile: [2, 2] })
+const world = new World({ el: rootElement, width: 15, height: 10, nestTile: [1, 1] })
 world
   .render({ debug: true })
-  // .addFood({ tile: [2, 2] })
-  .addFood({ tile: [17, 12] })
+  // .addFood({ tile: [4, 4] })
+  .addFood({ tile: [13, 6] })
 
 for (let i = 0; i < 3; i++) {
   world.addAnt({ direction: randomNumber(0, 6) })
