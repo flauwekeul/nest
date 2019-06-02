@@ -17,6 +17,7 @@ export class Ant {
     this.nestTile = tile
     this._setDirection(direction)
     this.surroundingTiles = surroundingTiles
+    // todo: use finite state machine pattern?
     this._currentActivity = () => this.explore()
   }
 
@@ -119,7 +120,6 @@ export class Ant {
   // BEHAVIORS
 
   explore() {
-    // todo: dedupe following 4 lines
     const tilesInFront = this._tilesInFront()
     if (tilesInFront.length === 0) {
       return this.turn(this._randomDirection())
@@ -178,17 +178,13 @@ export class Ant {
       if (a.food || b.food) {
         return a.food ? -1 : 1
       }
-
-      // fixme: make less complex
-      const pheromoneA = a.pheromone
-      const pheromoneB = b.pheromone
-      const totalPheromone = pheromoneA + pheromoneB
-      const distanceToNestA = this._distanceToNest(a)
-      const distanceToNestB = this._distanceToNest(b)
-      const totalDistanceToNest = distanceToNestA + distanceToNestB
-      const normalizedA = (pheromoneA / totalPheromone) + (distanceToNestA / totalDistanceToNest) - 1
-      const normalizedB = (pheromoneB / totalPheromone) + (distanceToNestB / totalDistanceToNest) - 1
-      return normalizedB - normalizedA
+      if (!a.pheromone && !b.pheromone) {
+        return 0
+      }
+      if (a.pheromone && b.pheromone) {
+        return this._distanceToNest(b) - this._distanceToNest(a)
+      }
+      return a.pheromone ? -1 : 1
     })[0]
     if (nextTile.equals(tileInFront)) {
       return this.move(nextTile)
