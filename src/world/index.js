@@ -2,7 +2,7 @@ import svgjs from 'svg.js';
 import { Ant } from '../ant';
 import { Food } from '../food';
 import { Grid } from '../grid';
-import { TILE_TYPES } from '../settings';
+import { FOOD_MAX, TILE_TYPES } from '../settings';
 import './world.css';
 
 const DIRECTION_COORDINATES = [
@@ -23,7 +23,6 @@ export class World {
     this.grid = new Grid({ draw: this.draw, nestHex: nestTile, width, height })
 
     // todo: make prettier
-    // todo: add pheromone to tiles surrounding the nest
     const _nestTile = this.tiles.get(nestTile)
     _nestTile.type = TILE_TYPES.NEST
     this.nestTile = _nestTile
@@ -63,16 +62,11 @@ export class World {
     return this
   }
 
-  addFood({ tile } = {}) {
+  addFood({ tile, amount = FOOD_MAX } = {}) {
     const foodTile = this.tiles.get(tile)
-    foodTile.food = new Food()
-
-    // todo: this is duplicated in Ant and Grid
-    const { x, y } = foodTile.center().add(foodTile.toPoint())
-    this.draw
-      .circle(foodTile.width() * 0.8, foodTile.height() * 0.8)
-      .addClass('food')
-      .center(x, y)
+    // todo: don't have tile bound to food and food bound to tile?
+    foodTile.food = new Food({ draw: this.draw, tile: foodTile, amount })
+    foodTile.food.render()
 
     return this
   }

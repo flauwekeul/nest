@@ -1,5 +1,5 @@
 import { defineGrid, extendHex } from 'honeycomb-grid';
-import { MAX_PHEROMONE, PHEROMONE_TICK, TILE_TYPES } from '../settings';
+import { PHEROMONE_EVAPORATE, PHEROMONE_MAX, TILE_TYPES } from '../settings';
 import './grid.css';
 
 export class Grid {
@@ -7,6 +7,7 @@ export class Grid {
     this.draw = draw
     this.nestHex = nestHex
 
+    // todo: use Tile class?
     const Hex = extendHex({
       orientation: 'flat',
       size: 20,
@@ -14,7 +15,7 @@ export class Grid {
       pheromone: 0,
       addPheromone(amount = 0) {
         amount += this.pheromone
-        this.pheromone = amount < 1 ? 0 : Math.min(amount, MAX_PHEROMONE)
+        this.pheromone = amount < 1 ? 0 : Math.min(amount, PHEROMONE_MAX)
       }
     })
     const Grid = defineGrid(Hex)
@@ -62,7 +63,14 @@ export class Grid {
   }
 
   tick() {
+    // fixme: use Pheromone class and keep Grid only responsible for hexes, not pheromones or food
     this.hexes.forEach((hex, i) => {
+      if (hex.food && hex.food.amount < 1) {
+        // todo: use Proxy to automatically call beforeDelete()?
+        hex.food.beforeDelete()
+        delete hex.food
+      }
+
       if (hex.type === TILE_TYPES.NEST || hex.pheromone < 1) {
         return
       }
@@ -71,8 +79,8 @@ export class Grid {
         .select('.hex')
         .addClass('hex--pheromone')
         // todo: don't just add pheromones
-        .fill({ opacity: this.hexes[i].pheromone / MAX_PHEROMONE })
-      hex.addPheromone(PHEROMONE_TICK)
+        .fill({ opacity: this.hexes[i].pheromone / PHEROMONE_MAX })
+      hex.addPheromone(PHEROMONE_EVAPORATE)
     })
 
     return this

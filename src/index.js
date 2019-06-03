@@ -1,4 +1,4 @@
-import { TICK_INTERVAL } from './settings';
+import { FOOD_MAX, TICK_INTERVAL } from './settings';
 import { randomNumber } from './utils';
 import { Ticker } from './utils/ticker';
 import { World } from './world';
@@ -6,9 +6,9 @@ import { World } from './world';
 const rootElement = document.getElementById('main')
 const world = new World({ el: rootElement, width: 25, height: 15, nestTile: [2, 2] })
 world
-  .render({ debug: true })
-  .addFood({ tile: [13, 14] })
-  .addFood({ tile: [24, 6] })
+  .render({ debug: false })
+  .addFood({ tile: [randomNumber(13, 24), randomNumber(6, 14)], amount: randomNumber(FOOD_MAX * 0.4, FOOD_MAX) })
+  .addFood({ tile: [randomNumber(13, 24), randomNumber(6, 14)], amount: randomNumber(FOOD_MAX * 0.4, FOOD_MAX) })
 
 for (let i = 0; i < 5; i++) {
   world.addAnt({ direction: randomNumber(0, 6) })

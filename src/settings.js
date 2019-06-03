@@ -5,6 +5,8 @@ export const TILE_TYPES = {
 
 export const TICK_INTERVAL = 200
 
-export const MAX_PHEROMONE = 1000
-export const PHEROMONE_TICK = -1
+export const PHEROMONE_MAX = 1000
+export const PHEROMONE_EVAPORATE = -1
 export const PHEROMONE_DROP = 50
+
+export const FOOD_MAX = 1000

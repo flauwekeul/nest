@@ -19,6 +19,7 @@ export class Ant {
     this.surroundingTiles = surroundingTiles
     // todo: use finite state machine pattern?
     this._currentActivity = () => this.explore()
+    this.carryCapacity = 100
   }
 
   render() {
@@ -94,9 +95,8 @@ export class Ant {
     return this
   }
 
-  take(contents) {
-    // todo: take chunk of food
-    this.carrying = contents
+  takeFood(tile) {
+    this.carrying = tile.food.consume(this.carryCapacity)
     this.svg
       .select('.ant')
       // todo: add something in jaws of ant to show it's carrying something
@@ -171,7 +171,7 @@ export class Ant {
 
     const tileInFront = this._tileInFront()
     if (tileInFront && tileInFront.food) {
-      return this.take()
+      return this.takeFood(tileInFront)
     }
 
     const nextTile = tilesInFront.sort((a, b) => {
