@@ -5,7 +5,7 @@
   "main": "dist/nest.js",
   "scripts": {
     "start": "parcel src/index.html",
-    "build": "parcel build src/index.html"
+    "build": "parcel build src/index.html --public-url /nest/ --out-dir ./"
   },
   "author": "Abbe Keultjes <flauwekeul@gmail.com> (http://abbekeultjes.nl/)",
   "license": "MIT",
