@@ -78,7 +78,6 @@ export class Grid {
       hex.svg
         .select('.hex')
         .addClass('hex--pheromone')
-        // todo: don't just add pheromones
         .fill({ opacity: this.hexes[i].pheromone / PHEROMONE_MAX })
       hex.addPheromone(PHEROMONE_EVAPORATE)
     })
