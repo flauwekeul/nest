@@ -3,7 +3,7 @@ export const TILE_TYPES = {
   NEST: 'NEST',
 }
 
-export const TICK_INTERVAL = 250
+export const TICK_INTERVAL = 200
 
 export const PHEROMONE_MAX = 1000
 export const PHEROMONE_EVAPORATE = -1
