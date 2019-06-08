@@ -1,17 +1,9 @@
-import { PHEROMONE_DROP, TICK_INTERVAL, TILE_TYPES } from '../settings';
-import { randomNumber, signedModulo } from '../utils';
-import './ant.css';
-
-// a little shorter than the tick interval to make sure the animation always finishes before the next tick
-const animationDuration = TICK_INTERVAL - 10
+import { PHEROMONE_DROP, TILE_TYPES } from '../settings'
+import { randomNumber, signedModulo } from '../utils'
+import './ant.css'
 
 export class Ant {
-  constructor({
-    draw,
-    tile,
-    direction = 0,
-    surroundingTiles = () => [],
-  } = {}) {
+  constructor({ draw, tile, direction = 0, surroundingTiles = () => [] } = {}) {
     this.draw = draw
     this.tile = tile
     this.nestTile = tile
@@ -24,8 +16,9 @@ export class Ant {
 
   render() {
     const { x, y } = this._tileToPoint()
-    const antSvg = this.draw.use('ant')
-      .addClass('ant')
+    const antGraphic = this.draw
+      .use('ant')
+      .addClass('ant__graphic')
       .size(40)
       .center(0, 0)
       // add 2 to direction to make it point the same way as a (flat) honeycomb hex
@@ -33,13 +26,16 @@ export class Ant {
     // create a filler rectangle to make the group occupy the same space as a tile
     const filler = this.draw
       .rect(this.tile.width(), this.tile.height())
-      .addClass('filler')
+      .addClass('ant__filler')
       .center(0, 0)
     this.svg = this.draw
       .group()
       .center(x, y)
       .add(filler)
-      .add(antSvg)
+      .add(antGraphic)
+
+    // prevent CSS transition when ant is first rendered
+    setTimeout(() => this.svg.addClass('ant'), 0)
 
     return this
   }
@@ -64,19 +60,14 @@ export class Ant {
   move(tile) {
     this.tile = tile
     const { x, y } = this._tileToPoint()
-    this.svg
-      .animate({ duration: animationDuration, ease: '-' })
-      .move(x, y)
+    this.svg.move(x, y)
 
     return this
   }
 
   turn(delta) {
     this._setDirection(this.direction + delta)
-    this.svg
-      .select('.ant')
-      .animate({ duration: animationDuration, ease: '-' })
-      .transform({ rotation: delta * 60, relative: true })
+    this.svg.select('.ant__graphic').transform({ rotation: delta * 60, relative: true })
 
     return this
   }
@@ -93,7 +84,7 @@ export class Ant {
       2: s - this.tile.s,
       3: this.tile.r - r,
       4: q - this.tile.q,
-      5: this.tile.s - s
+      5: this.tile.s - s,
     }
     const turnDirection = turnDirectionMap[this.direction] || this._randomDirection()
     this.turn(turnDirection)
@@ -104,9 +95,9 @@ export class Ant {
   takeFood(tile) {
     this.carrying = tile.food.consume(this.carryCapacity)
     this.svg
-      .select('.ant')
+      .select('.ant__graphic')
       // todo: add something in jaws of ant to show it's carrying something
-      .addClass('ant--carrying')
+      .addClass('ant__graphic--carrying')
     this._currentActivity = () => this.returnToNest()
 
     return this
@@ -115,9 +106,7 @@ export class Ant {
   drop() {
     // todo: do something with dropped food
     this.carrying = null
-    this.svg
-      .select('.ant')
-      .removeClass('ant--carrying')
+    this.svg.select('.ant__graphic').removeClass('ant__graphic--carrying')
     this._currentActivity = () => this.goToFood()
 
     return this
@@ -133,13 +122,12 @@ export class Ant {
     }
 
     if (tilesInFront.some(({ food, pheromone }) => food || pheromone > 0)) {
-      return this._currentActivity = () => this.goToFood()
+      return (this._currentActivity = () => this.goToFood())
     }
 
     const tileInFront = this._tileInFront()
-    const nextTile = tileInFront && Math.random() > 0.3
-      ? tileInFront
-      : tilesInFront[randomNumber(0, tilesInFront.length - 1)]
+    const nextTile =
+      tileInFront && Math.random() > 0.3 ? tileInFront : tilesInFront[randomNumber(0, tilesInFront.length - 1)]
     this._doOrTurnTowards(nextTile, () => this.move(nextTile))
   }
 

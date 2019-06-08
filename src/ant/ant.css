@@ -1,10 +1,13 @@
-.ant {
+.ant,
+.ant__graphic {
+  transition: transform 200ms linear;
+}
+.ant__graphic {
   fill: #333;
 }
-.ant--carrying {
+.ant__graphic--carrying {
   fill: #993;
 }
-
-.filler {
+.ant__filler {
   fill: none;
 }
