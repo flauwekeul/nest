@@ -1,11 +1,9 @@
-.hex {
+.tile {
   fill: none;
-  /* stroke-width: 3px;
-  stroke: #eee; */
 }
-.hex.hex--nest {
+.tile.tile--nest {
   fill: #000;
 }
-.hex.hex--pheromone {
+.tile.tile--pheromone {
   fill: red;
 }

@@ -1,9 +1,9 @@
-import svgjs from 'svg.js';
-import { Ant } from '../ant';
-import { Food } from '../food';
-import { Grid } from '../grid';
-import { FOOD_MAX, TILE_TYPES } from '../settings';
-import './world.css';
+import svgjs from 'svg.js'
+import { Ant } from '../ant'
+import { Food } from '../food'
+import { Grid } from '../grid'
+import { FOOD_MAX } from '../settings'
+import './world.css'
 
 const DIRECTION_COORDINATES = [
   { q: 1, r: 0 },
@@ -11,22 +11,22 @@ const DIRECTION_COORDINATES = [
   { q: -1, r: 1 },
   { q: -1, r: 0 },
   { q: 0, r: -1 },
-  { q: 1, r: -1 }
+  { q: 1, r: -1 },
 ]
 
 export class World {
-  get tiles() { return this.grid.hexes }
+  get tiles() {
+    return this.grid.hexes
+  }
 
   constructor({ el, width = 1, height = 1, nestTile } = {}) {
     this.el = el
     this.draw = svgjs(this.el)
-    this.grid = new Grid({ draw: this.draw, nestHex: nestTile, width, height })
+    this.grid = new Grid({ draw: this.draw, nestTile, width, height })
 
-    // todo: make prettier
-    const _nestTile = this.tiles.get(nestTile)
-    _nestTile.type = TILE_TYPES.NEST
-    this.nestTile = _nestTile
+    this.nestTile = this.tiles.get(nestTile)
     this.ants = []
+    this.foods = []
   }
 
   render({ debug = false } = {}) {
@@ -42,7 +42,6 @@ export class World {
   addAnt({ direction = 0 } = {}) {
     const ant = new Ant({
       draw: this.draw,
-      // fixme: honeycomb: grid.neighborsOf() shouldn't filter out empty hexes and ideally should map each direction to a hex
       surroundingTiles: (tile, direction) => this.tiles.neighborsOf(tile, direction),
       // surroundingTiles: (tile, directions = [0, 1, 2, 3, 4, 5]) => [].concat(directions).map(direction => {
       //   if (direction < 0 || direction > 5) {
@@ -63,19 +62,18 @@ export class World {
   }
 
   addFood({ tile, amount = FOOD_MAX } = {}) {
-    const foodTile = this.tiles.get(tile)
-    // todo: don't have tile bound to food and food bound to tile?
-    foodTile.food = new Food({ draw: this.draw, tile: foodTile, amount })
-    foodTile.food.render()
+    const food = new Food({ draw: this.draw, tile: this.tiles.get(tile), amount })
+    food.render()
+    this.foods.push(food)
 
     return this
   }
 
   tick() {
-    this.ants.forEach(ant => {
-      ant.tick()
-    })
-    this.grid.tick()
+    this.tiles.forEach(tile => tile.tick())
+    this.ants.forEach(ant => ant.tick())
+    // remove all "empty" food
+    this.foods = this.foods.filter(food => (food.amount < 1 && food.beforeDelete(), true))
 
     return this
   }

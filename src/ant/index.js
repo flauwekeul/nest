@@ -9,7 +9,6 @@ export class Ant {
     this.nestTile = tile
     this._setDirection(direction)
     this.surroundingTiles = surroundingTiles
-    // fixme: use finite state machine pattern or find another way to untangle this spaghetti
     this._currentActivity = () => this.explore()
     this.carryCapacity = 100
   }
@@ -122,7 +121,8 @@ export class Ant {
     }
 
     if (tilesInFront.some(({ food, pheromone }) => food || pheromone > 0)) {
-      return (this._currentActivity = () => this.goToFood())
+      this._currentActivity = () => this.goToFood()
+      return this
     }
 
     const tileInFront = this._tileInFront()
