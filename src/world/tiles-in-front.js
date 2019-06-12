@@ -19,6 +19,10 @@ export class TilesInFront {
 
   closestToFood() {
     return this.tiles.sort((a, b) => {
+      if (a.food || b.food) {
+        return a.food ? -1 : 1
+      }
+
       if (a.pheromone && b.pheromone) {
         // todo: also consider pheromone strength
         return this._distanceToNest(b) - this._distanceToNest(a)

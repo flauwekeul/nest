@@ -124,7 +124,6 @@ export class Ant {
     }
 
     const { center } = tilesInFront
-    // todo: either move, move & turn or just turn
     const nextTile = center && Math.random() > 0.3 ? center : tilesInFront.random()
     this._doOrTurnTowards(nextTile, () => this.move(nextTile))
   }
@@ -157,10 +156,8 @@ export class Ant {
     }
 
     const tileWithFood = tilesInFront.withFood()
-    if (tileWithFood) {
-      return this.turnTowards(tileWithFood)
-        .takeFood(tileWithFood)
-        ._setBehavior('returnToNest')
+    if (tileWithFood && tileWithFood.equals(tilesInFront.center)) {
+      return this.takeFood(tileWithFood)._setBehavior('returnToNest')
     }
 
     const nextTile = tilesInFront.closestToFood()
