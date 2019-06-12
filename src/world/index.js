@@ -37,7 +37,6 @@ export class World {
 
     this.nestTile = this.tiles.get(nestTile)
     this.ants = []
-    this.foods = []
   }
 
   // todo: make a button to toggle debug
@@ -58,8 +57,7 @@ export class World {
       getTilesInFront: (tile, direction) => {
         // get tiles in order: center, left, right
         const tiles = surroundingTiles(this.tiles, tile, [direction, direction - 1, direction + 1])
-        const { nestTile, foods } = this
-        return new TilesInFront({ tiles, nestTile, foods })
+        return new TilesInFront({ tiles, nestTile: this.nestTile })
       },
       tile: this.nestTile,
       direction,
@@ -72,9 +70,10 @@ export class World {
   }
 
   addFood({ tile, amount = FOOD_MAX } = {}) {
-    const food = new Food({ draw: this.draw, tile: this.tiles.get(tile), amount })
+    tile = this.tiles.get(tile)
+    const food = new Food({ draw: this.draw, tile, amount })
     food.render()
-    this.foods.push(food)
+    tile.food = food
 
     return this
   }
@@ -82,8 +81,6 @@ export class World {
   tick() {
     this.tiles.forEach(tile => tile.tick())
     this.ants.forEach(ant => ant.tick())
-    // remove all "empty" food
-    this.foods = this.foods.filter(food => food.amount > 0 || food.beforeDelete())
 
     return this
   }

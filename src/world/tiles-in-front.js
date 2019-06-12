@@ -5,13 +5,12 @@ import { randomNumber } from '../utils'
  * It's the interface an ant has to "sense" its immediate surroundings.
  */
 export class TilesInFront {
-  constructor({ tiles, nestTile, foods = [] }) {
+  constructor({ tiles, nestTile }) {
     this.center = tiles[0]
     this.left = tiles[1]
     this.right = tiles[2]
     this.tiles = tiles.filter(Boolean)
     this._nestTile = nestTile
-    this._foods = foods
   }
 
   get count() {
@@ -33,12 +32,12 @@ export class TilesInFront {
     return this.tiles.sort((a, b) => this._distanceToNest(a) - this._distanceToNest(b))[0]
   }
 
-  takeFoodFrom(tile, amount) {
-    return this._foods.find(food => tile.equals(food.tile)).consume(amount)
+  takeFoodFrom({ tile, amount }) {
+    return tile.food.consume(amount)
   }
 
   withFood() {
-    return this.tiles.find(tile => this._foods.some(food => food.tile.equals(tile)))
+    return this.tiles.find(tile => tile.food)
   }
 
   withPheromone() {

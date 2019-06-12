@@ -39,12 +39,19 @@ export const defineTile = draw => ({
   },
 
   tick() {
-    if (this.type === TILE_TYPES.NEST || this.pheromone < 1) {
+    if (this.type === TILE_TYPES.NEST) {
       return
     }
 
-    this._renderPheromone()
-    this.addPheromone(PHEROMONE_EVAPORATE)
+    if (this.pheromone > 0) {
+      this._renderPheromone()
+      this.addPheromone(PHEROMONE_EVAPORATE)
+    }
+
+    if (this.food && this.food.amount < 1) {
+      this.food.beforeDelete()
+      delete this.food
+    }
   },
 
   // todo: use Pheromone class and move managing of its instances to World (just like Food)

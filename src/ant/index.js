@@ -91,7 +91,7 @@ export class Ant {
   }
 
   takeFood(tile) {
-    this.carrying = this.tilesInFront.takeFoodFrom(tile, this.carryCapacity)
+    this.carrying = this.tilesInFront.takeFoodFrom({ tile, amount: this.carryCapacity })
     this.svg
       .select('.ant__graphic')
       // todo: add something in jaws of ant to show it's carrying something
@@ -158,9 +158,9 @@ export class Ant {
 
     const tileWithFood = tilesInFront.withFood()
     if (tileWithFood) {
-      this.turnTowards(tileWithFood)
-      this.takeFood(tileWithFood)
-      return this._setBehavior('returnToNest')
+      return this.turnTowards(tileWithFood)
+        .takeFood(tileWithFood)
+        ._setBehavior('returnToNest')
     }
 
     const nextTile = tilesInFront.closestToFood()
