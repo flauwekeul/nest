@@ -3,6 +3,8 @@ import { Ant } from '../ant'
 import { Food } from '../food'
 import { Grid } from '../grid'
 import { FOOD_MAX } from '../settings'
+import { signedModulo } from '../utils'
+import { TilesInFront } from './tiles-in-front'
 import './world.css'
 
 const DIRECTION_COORDINATES = [
@@ -13,6 +15,15 @@ const DIRECTION_COORDINATES = [
   { q: 0, r: -1 },
   { q: 1, r: -1 },
 ]
+// own version of Grid.neighborsOf() that doesn't filter non-existent hexes. This is fixed in honeycomb 3.0
+const surroundingTiles = (tiles, tile, directions) =>
+  [].concat(directions).map(direction => {
+    if (direction < 0 || direction > 5) {
+      direction = signedModulo(direction, 6)
+    }
+    const { q, r } = DIRECTION_COORDINATES[direction]
+    return tiles.get(tile.cubeToCartesian({ q: tile.q + q, r: tile.r + r }))
+  })
 
 export class World {
   get tiles() {
@@ -29,7 +40,9 @@ export class World {
     this.foods = []
   }
 
+  // todo: make a button to toggle debug
   render({ debug = false } = {}) {
+    // todo: don't render all hexes, but only the ants, foods and pheromones
     this.grid.render({ debug })
 
     const { width, height } = this.draw.bbox()
@@ -42,15 +55,12 @@ export class World {
   addAnt({ direction = 0 } = {}) {
     const ant = new Ant({
       draw: this.draw,
-      surroundingTiles: (tile, direction) => this.tiles.neighborsOf(tile, direction),
-      // surroundingTiles: (tile, directions = [0, 1, 2, 3, 4, 5]) => [].concat(directions).map(direction => {
-      //   if (direction < 0 || direction > 5) {
-      //     direction = signedModulo(direction, 6)
-      //   }
-      //   const { q, r } = DIRECTION_COORDINATES[direction]
-      //   return this.tiles.get(tile.cubeToCartesian({ q: tile.q + q, r: tile.r + r }))
-      // }),
-      // returns first tile the ant should go to in order to return to the nest
+      getTilesInFront: (tile, direction) => {
+        // get tiles in order: center, left, right
+        const tiles = surroundingTiles(this.tiles, tile, [direction, direction - 1, direction + 1])
+        const { nestTile, foods } = this
+        return new TilesInFront({ tiles, nestTile, foods })
+      },
       tile: this.nestTile,
       direction,
     })
@@ -73,7 +83,7 @@ export class World {
     this.tiles.forEach(tile => tile.tick())
     this.ants.forEach(ant => ant.tick())
     // remove all "empty" food
-    this.foods = this.foods.filter(food => (food.amount < 1 && food.beforeDelete(), true))
+    this.foods = this.foods.filter(food => food.amount > 0 || food.beforeDelete())
 
     return this
   }

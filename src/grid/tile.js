@@ -43,15 +43,21 @@ export const defineTile = draw => ({
       return
     }
 
+    this._renderPheromone()
+    this.addPheromone(PHEROMONE_EVAPORATE)
+  },
+
+  // todo: use Pheromone class and move managing of its instances to World (just like Food)
+  addPheromone(amount = 0) {
+    amount += this.pheromone
+    this.pheromone = amount < 1 ? 0 : Math.min(amount, PHEROMONE_MAX)
+    this._renderPheromone()
+  },
+
+  _renderPheromone() {
     this.svg
       .select('.tile')
       .addClass('tile--pheromone')
       .fill({ opacity: this.pheromone / PHEROMONE_MAX })
-    this.addPheromone(PHEROMONE_EVAPORATE)
-  },
-
-  addPheromone(amount = 0) {
-    amount += this.pheromone
-    this.pheromone = amount < 1 ? 0 : Math.min(amount, PHEROMONE_MAX)
   },
 })

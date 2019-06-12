@@ -1,16 +1,16 @@
 import { PHEROMONE_DROP, TILE_TYPES } from '../settings'
-import { randomNumber, signedModulo } from '../utils'
+import { signedModulo } from '../utils'
 import './ant.css'
 
 export class Ant {
-  constructor({ draw, tile, direction = 0, surroundingTiles = () => [] } = {}) {
+  constructor({ draw, tile, direction = 0, getTilesInFront = () => [] } = {}) {
     this.draw = draw
     this.tile = tile
     this.nestTile = tile
-    this._setDirection(direction)
-    this.surroundingTiles = surroundingTiles
-    this._currentActivity = () => this.explore()
+    this.getTilesInFront = getTilesInFront
     this.carryCapacity = 100
+    this._setDirection(direction)
+    this._setBehavior('explore')
   }
 
   render() {
@@ -46,13 +46,8 @@ export class Ant {
       return this
     }
 
-    const { direction } = this
-    this.tilesInFront = this.surroundingTiles(this.tile, [direction - 1, direction, direction + 1])
-    if (this.tilesInFront.length === 0) {
-      return this.turn(this._randomDirection())
-    }
-
-    this._currentActivity()
+    this.tilesInFront = this.getTilesInFront(this.tile, this.direction)
+    this._currentBehavior()
     return this
   }
 
@@ -71,13 +66,17 @@ export class Ant {
     return this
   }
 
+  turnRandom() {
+    return this.turn(this._randomRotation())
+  }
+
   turnTowards(tile) {
-    if (tile.equals(this._tileInFront())) {
+    if (tile.equals(this.tilesInFront.center)) {
       return this
     }
 
     const { q, r, s } = tile
-    const turnDirectionMap = {
+    const rotationMap = {
       0: r - this.tile.r,
       1: this.tile.q - q,
       2: s - this.tile.s,
@@ -85,19 +84,18 @@ export class Ant {
       4: q - this.tile.q,
       5: this.tile.s - s,
     }
-    const turnDirection = turnDirectionMap[this.direction] || this._randomDirection()
-    this.turn(turnDirection)
+    const rotation = rotationMap[this.direction] || this._randomRotation()
+    this.turn(rotation)
 
     return this
   }
 
   takeFood(tile) {
-    this.carrying = tile.food.consume(this.carryCapacity)
+    this.carrying = this.tilesInFront.takeFoodFrom(tile, this.carryCapacity)
     this.svg
       .select('.ant__graphic')
       // todo: add something in jaws of ant to show it's carrying something
       .addClass('ant__graphic--carrying')
-    this._currentActivity = () => this.returnToNest()
 
     return this
   }
@@ -106,7 +104,6 @@ export class Ant {
     // todo: do something with dropped food
     this.carrying = null
     this.svg.select('.ant__graphic').removeClass('ant__graphic--carrying')
-    this._currentActivity = () => this.goToFood()
 
     return this
   }
@@ -115,64 +112,69 @@ export class Ant {
 
   explore() {
     const { tilesInFront } = this
-    const frontTileWithFood = tilesInFront.find(tile => tile.food)
-    if (frontTileWithFood) {
-      return this._doOrTurnTowards(frontTileWithFood, () => this.takeFood(frontTileWithFood))
+    if (tilesInFront.count === 0) {
+      return this.turnRandom()
     }
 
-    if (tilesInFront.some(({ food, pheromone }) => food || pheromone > 0)) {
-      this._currentActivity = () => this.goToFood()
+    const tileWithFoodOrPheromone = tilesInFront.withFood() || tilesInFront.withPheromone()
+    if (tileWithFoodOrPheromone) {
+      this.turnTowards(tileWithFoodOrPheromone)
+      this._setBehavior('goToFood')
       return this
     }
 
-    const tileInFront = this._tileInFront()
-    const nextTile =
-      tileInFront && Math.random() > 0.3 ? tileInFront : tilesInFront[randomNumber(0, tilesInFront.length - 1)]
+    const { center } = tilesInFront
+    // todo: either move, move & turn or just turn
+    const nextTile = center && Math.random() > 0.3 ? center : tilesInFront.random()
     this._doOrTurnTowards(nextTile, () => this.move(nextTile))
   }
 
   // todo: randomly go different direction to make it less perfect?
   // todo: when there's already a trail, follow it instead of using tileTowardsNest?
   returnToNest() {
-    const { tile, tilesInFront } = this
-    const tileClosestToNest = tilesInFront.sort((a, b) => this._distanceToNest(a) - this._distanceToNest(b))[0]
-
-    if (tile.type === TILE_TYPES.NEST) {
-      return this.drop()
-    }
-
-    if (tileClosestToNest) {
-      this._doOrTurnTowards(tileClosestToNest, () => {
-        tile.addPheromone(PHEROMONE_DROP)
-        return this.move(tileClosestToNest)
-      })
-    }
-  }
-
-  goToFood() {
-    const tileInFront = this._tileInFront()
-    if (tileInFront && tileInFront.food) {
-      return this.takeFood(tileInFront)
+    if (this.tile.type === TILE_TYPES.NEST) {
+      // todo: don't assume ant is carrying food?
+      this.drop()
+      return this._setBehavior('turnAround', this.direction, this._randomRotation())
     }
 
     const { tilesInFront } = this
-    const nextTile = tilesInFront.sort((a, b) => {
-      if (a.food || b.food) {
-        return a.food ? -1 : 1
-      }
-      if (!a.pheromone && !b.pheromone) {
-        // in this state there's no pheromone in front of the ant, either because it's at the nest
-        // or because it's at the end of the trail and the food is gone
-        // todo: think of a way to start exploring again instead of aimlessly following the trail back
-        return
-      }
-      if (a.pheromone && b.pheromone) {
-        // todo: also consider pheromone strength
-        return this._distanceToNest(b) - this._distanceToNest(a)
-      }
-      return a.pheromone ? -1 : 1
-    })[0]
+    if (tilesInFront.count === 0) {
+      return this.turnRandom()
+    }
+
+    const nextTile = tilesInFront.closestToNest()
+    this._doOrTurnTowards(nextTile, () => {
+      this.tile.addPheromone(PHEROMONE_DROP)
+      return this.move(nextTile)
+    })
+  }
+
+  goToFood() {
+    const { tilesInFront } = this
+    if (tilesInFront.count === 0) {
+      return this.turnRandom()
+    }
+
+    const tileWithFood = tilesInFront.withFood()
+    if (tileWithFood) {
+      this.turnTowards(tileWithFood)
+      this.takeFood(tileWithFood)
+      return this._setBehavior('returnToNest')
+    }
+
+    const nextTile = tilesInFront.closestToFood()
     return this._doOrTurnTowards(nextTile, () => this.move(nextTile))
+  }
+
+  turnAround(startDirection = this.direction, rotation = this._randomRotation()) {
+    if (this.direction === signedModulo(startDirection + 3, 6)) {
+      // todo: make it possible to specify the behavior when the ant finishes to turn around?
+      return this._setBehavior('explore')
+    }
+    this.turn(rotation)
+
+    return this
   }
 
   // PRIVATES
@@ -185,26 +187,21 @@ export class Ant {
     this.direction = signedModulo(direction, 6)
   }
 
-  _randomDirection() {
-    return Math.random() > 0.5 ? 1 : -1
+  _setBehavior(behavior, ...args) {
+    this._currentBehavior = () => this[behavior](...args)
   }
 
-  _tileInFront() {
-    return this.surroundingTiles(this.tile, this.direction)[0]
+  _randomRotation() {
+    return Math.random() > 0.5 ? 1 : -1
   }
 
   /**
    * If the passed tile is in front of the ant: call callback, else: turn towards the tile
    */
   _doOrTurnTowards(tile, callback) {
-    if (tile.equals(this._tileInFront())) {
+    if (tile.equals(this.tilesInFront.center)) {
       return callback()
     }
     return this.turnTowards(tile)
-  }
-
-  // todo: memoize this (or just set it on each tile)
-  _distanceToNest(tile) {
-    return this.nestTile.distance(tile)
   }
 }
