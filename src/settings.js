@@ -2,6 +2,7 @@ export const TILE_TYPES = {
   FLOOR: 'FLOOR',
   NEST: 'NEST',
 }
+export const TILE_SIZE = 15
 
 export const TICK_INTERVAL = 200
 

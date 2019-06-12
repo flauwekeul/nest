@@ -18,7 +18,7 @@ export class Ant {
     const antGraphic = this.draw
       .use('ant')
       .addClass('ant__graphic')
-      .size(40)
+      .size(this.tile.height())
       .center(0, 0)
       // add 2 to direction to make it point the same way as a (flat) honeycomb hex
       .rotate((this.direction + 2) * 60)

@@ -1,12 +1,12 @@
-import { PHEROMONE_EVAPORATE, PHEROMONE_MAX, TILE_TYPES } from '../settings'
+import { PHEROMONE_EVAPORATE, PHEROMONE_MAX, TILE_SIZE, TILE_TYPES } from '../settings'
 
 export const defineTile = draw => ({
   orientation: 'flat',
-  size: 20,
+  size: TILE_SIZE,
   type: TILE_TYPES.FLOOR,
   pheromone: 0,
   _debugFont: {
-    size: 10,
+    size: TILE_SIZE / 2,
     anchor: 'middle',
     leading: 1.4,
     fill: '#ccc',
