@@ -1,4 +1,4 @@
-import { PHEROMONE_DROP, TILE_TYPES } from '../settings'
+import { PHEROMONE_DROP } from '../settings'
 import { signedModulo } from '../utils'
 import './ant.css'
 
@@ -128,10 +128,8 @@ export class Ant {
     this._doOrTurnTowards(nextTile, () => this.move(nextTile))
   }
 
-  // todo: randomly go different direction to make it less perfect?
-  // todo: when there's already a trail, follow it instead of using tileTowardsNest?
   returnToNest() {
-    if (this.tile.type === TILE_TYPES.NEST) {
+    if (this.tile.isNest()) {
       // todo: don't assume ant is carrying food?
       this.drop()
       return this._setBehavior('turnAround', this.direction, this._randomRotation())
@@ -153,6 +151,11 @@ export class Ant {
     const { tilesInFront } = this
     if (tilesInFront.count === 0) {
       return this.turnRandom()
+    }
+
+    // end of trail and no food around (anymore)
+    if (!tilesInFront.withPheromone() && !tilesInFront.withFood()) {
+      return this._setBehavior('explore')
     }
 
     const tileWithFood = tilesInFront.withFood()

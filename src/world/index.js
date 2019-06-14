@@ -51,16 +51,16 @@ export class World {
     return this
   }
 
-  addAnt({ direction = 0 } = {}) {
+  addAnt({ tile = this.nestTile, direction = 0 } = {}) {
     const ant = new Ant({
       draw: this.draw,
+      tile: this.tiles.get(tile),
+      direction,
       getTilesInFront: (tile, direction) => {
         // get tiles in order: center, left, right
         const tiles = surroundingTiles(this.tiles, tile, [direction, direction - 1, direction + 1])
         return new TilesInFront({ tiles, nestTile: this.nestTile })
       },
-      tile: this.nestTile,
-      direction,
     })
 
     this.ants.push(ant)

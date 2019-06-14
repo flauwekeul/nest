@@ -26,7 +26,7 @@ export class Grid {
     // todo: honeycomb: corners should be on Hex?
     const hexCorners = this.hexes[0].corners()
     const svgSymbol = this.draw.symbol().polygon(hexCorners.map(({ x, y }) => `${x},${y}`))
-    this.hexes.forEach(hex => hex.render({ svgSymbol, isNestTile: hex.equals(this.nestTile), debug }))
+    this.hexes.forEach(hex => hex.render({ svgSymbol, debug }))
 
     return this
   }

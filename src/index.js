@@ -1,19 +1,31 @@
-import { FOOD_MAX, TICK_INTERVAL } from './settings'
+import {
+  FOOD_MAX,
+  TICK_INTERVAL,
+  WORLD_ANTS,
+  WORLD_FOODS,
+  WORLD_HEIGHT,
+  WORLD_NEST_TILE,
+  WORLD_WIDTH,
+} from './settings'
 import { randomNumber } from './utils'
 import { Ticker } from './utils/ticker'
 import { World } from './world'
 
 const rootElement = document.getElementById('main')
-const width = 50
-const height = 20
-const world = new World({ el: rootElement, width, height, nestTile: [2, 2] })
-world
-  .render({ debug: false })
-  .addFood({ tile: [randomNumber(0, width), randomNumber(0, height)], amount: randomNumber(FOOD_MAX * 0.4, FOOD_MAX) })
-  .addFood({ tile: [randomNumber(0, width), randomNumber(0, height)], amount: randomNumber(FOOD_MAX * 0.4, FOOD_MAX) })
-  .addFood({ tile: [randomNumber(0, width), randomNumber(0, height)], amount: randomNumber(FOOD_MAX * 0.4, FOOD_MAX) })
+const world = new World({ el: rootElement, width: WORLD_WIDTH, height: WORLD_HEIGHT, nestTile: WORLD_NEST_TILE })
+world.render({ debug: false })
 
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < WORLD_FOODS; i++) {
+  world.addFood({
+    tile: [
+      randomNumber(Math.floor(WORLD_WIDTH / 3), WORLD_WIDTH - 1),
+      randomNumber(Math.floor(WORLD_HEIGHT / 3), WORLD_HEIGHT - 1),
+    ],
+    amount: randomNumber(FOOD_MAX * 0.4, FOOD_MAX),
+  })
+}
+
+for (let i = 0; i < WORLD_ANTS; i++) {
   world.addAnt({ direction: randomNumber(0, 6) })
 }
 

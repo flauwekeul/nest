@@ -1,3 +1,4 @@
+import { PHEROMONE_MAX } from '../settings'
 import { randomNumber } from '../utils'
 
 /**
@@ -24,8 +25,10 @@ export class TilesInFront {
       }
 
       if (a.pheromone && b.pheromone) {
-        // todo: also consider pheromone strength
-        return this._distanceToNest(b) - this._distanceToNest(a)
+        // go to strongest pheromone if the difference is significant
+        return Math.abs(a.pheromone - b.pheromone) > PHEROMONE_MAX * 0.1
+          ? b.pheromone - a.pheromone
+          : this._distanceToNest(b) - this._distanceToNest(a)
       }
 
       return a.pheromone ? -1 : 1
@@ -33,7 +36,10 @@ export class TilesInFront {
   }
 
   closestToNest() {
-    return this.tiles.sort((a, b) => this._distanceToNest(a) - this._distanceToNest(b))[0]
+    const priorityTiles = this.tiles.filter(tile => tile.isNest() || tile.pheromone > 0)
+    return (priorityTiles.length > 0 ? priorityTiles : this.tiles).sort(
+      (a, b) => this._distanceToNest(a) - this._distanceToNest(b),
+    )[0]
   }
 
   takeFoodFrom({ tile, amount }) {
@@ -45,7 +51,7 @@ export class TilesInFront {
   }
 
   withPheromone() {
-    return this.tiles.find(tile => tile && tile.pheromone > 0)
+    return this.tiles.find(tile => tile.pheromone > 0)
   }
 
   random() {
