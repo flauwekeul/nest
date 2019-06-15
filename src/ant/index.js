@@ -51,6 +51,10 @@ export class Ant {
     return this
   }
 
+  isCarrying() {
+    return this.carrying > 0
+  }
+
   move(tile) {
     this.tile = tile
     const { x, y } = this._tileToPoint()
@@ -70,21 +74,22 @@ export class Ant {
     return this.turn(this._randomRotation())
   }
 
-  turnTowards(tile) {
-    if (tile.equals(this.tilesInFront.center)) {
+  turnTowards(targetTile) {
+    const { tilesInFront, tile, direction } = this
+    if (targetTile.equals(tilesInFront.center)) {
       return this
     }
 
-    const { q, r, s } = tile
+    const { q, r, s } = targetTile
     const rotationMap = {
-      0: r - this.tile.r,
-      1: this.tile.q - q,
-      2: s - this.tile.s,
-      3: this.tile.r - r,
-      4: q - this.tile.q,
-      5: this.tile.s - s,
+      0: r - tile.r,
+      1: tile.q - q,
+      2: s - tile.s,
+      3: tile.r - r,
+      4: q - tile.q,
+      5: tile.s - s,
     }
-    const rotation = rotationMap[this.direction] || this._randomRotation()
+    const rotation = rotationMap[direction] || this._randomRotation()
     this.turn(rotation)
 
     return this
@@ -125,14 +130,17 @@ export class Ant {
 
     const { center } = tilesInFront
     const nextTile = center && Math.random() > 0.3 ? center : tilesInFront.random()
-    this._doOrTurnTowards(nextTile, () => this.move(nextTile))
+    this._moveOrTurnTowards(nextTile)
   }
 
   returnToNest() {
     if (this.tile.isNest()) {
       // todo: don't assume ant is carrying food?
       this.drop()
-      return this._setBehavior('turnAround', this.direction, this._randomRotation())
+      return this._setBehavior('turnAround', {
+        startDirection: this.direction,
+        rotation: this._randomRotation(),
+      })
     }
 
     const { tilesInFront } = this
@@ -141,10 +149,7 @@ export class Ant {
     }
 
     const nextTile = tilesInFront.closestToNest()
-    this._doOrTurnTowards(nextTile, () => {
-      this.tile.addPheromone(PHEROMONE_DROP)
-      return this.move(nextTile)
-    })
+    this._moveOrTurnTowards(nextTile)
   }
 
   goToFood() {
@@ -164,13 +169,24 @@ export class Ant {
     }
 
     const nextTile = tilesInFront.closestToFood()
-    return this._doOrTurnTowards(nextTile, () => this.move(nextTile))
+    return this._moveOrTurnTowards(nextTile)
   }
 
-  turnAround(startDirection = this.direction, rotation = this._randomRotation()) {
+  // todo: use some kind of behavior queue?
+  stepAside({ targetTile, sideTile, nextBehavior = this.explore }) {
+    if (this.tile.equals(sideTile)) {
+      // this should encourage the ant to do whatever it was doing
+      this.turnTowards(targetTile)
+      this._currentBehavior = nextBehavior
+      return
+    }
+    return this._moveOrTurnTowards(sideTile)
+  }
+
+  turnAround({ startDirection, rotation, nextBehavior = this.explore }) {
     if (this.direction === signedModulo(startDirection + 3, 6)) {
-      // todo: make it possible to specify the behavior when the ant finishes to turn around?
-      return this._setBehavior('explore')
+      this._currentBehavior = nextBehavior
+      return
     }
     this.turn(rotation)
 
@@ -187,8 +203,8 @@ export class Ant {
     this.direction = signedModulo(direction, 6)
   }
 
-  _setBehavior(behavior, ...args) {
-    this._currentBehavior = () => this[behavior](...args)
+  _setBehavior(behavior, args) {
+    this._currentBehavior = () => this[behavior](args)
   }
 
   _randomRotation() {
@@ -196,12 +212,36 @@ export class Ant {
   }
 
   /**
-   * If the passed tile is in front of the ant: call callback, else: turn towards the tile
+   * If the passed tile is in front of the ant: move there, else: turn towards the tile
    */
-  _doOrTurnTowards(tile, callback) {
-    if (tile.equals(this.tilesInFront.center)) {
-      return callback()
+  _moveOrTurnTowards(tile) {
+    const { tilesInFront } = this
+    const { center, left, right } = tilesInFront
+    if (!tile.equals(center)) {
+      return this.turnTowards(tile)
     }
-    return this.turnTowards(tile)
+
+    // ants can't be on the same tile, so an ant either steps aside when it wants to move to an occupied tile
+    // or it waits a bit depending on if it's carrying something
+    // todo: when ants want to swap tiles, let them
+    if (tilesInFront.hasAntInCenter() && !center.isNest()) {
+      const STEP_ASIDE_CHANCE = this.isCarrying() ? 0.1 : 0.7
+      if (Math.random() < STEP_ASIDE_CHANCE) {
+        this._leavePheromone()
+        this._setBehavior('stepAside', {
+          targetTile: center,
+          sideTile: left || right,
+          nextBehavior: this._currentBehavior,
+        })
+      }
+      return this
+    }
+
+    this._leavePheromone()
+    this.move(tile)
+  }
+
+  _leavePheromone() {
+    this.isCarrying() && this.tile.addPheromone(PHEROMONE_DROP)
   }
 }

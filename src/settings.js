@@ -1,3 +1,5 @@
+import { randomNumber } from './utils'
+
 export const TILE_TYPES = {
   FLOOR: 'FLOOR',
   NEST: 'NEST',
@@ -16,4 +18,4 @@ export const WORLD_WIDTH = 50
 export const WORLD_HEIGHT = 20
 export const WORLD_FOODS = 5
 export const WORLD_ANTS = 10
-export const WORLD_NEST_TILE = [2, 2]
+export const WORLD_NEST_TILE = [randomNumber(0, 5), randomNumber(0, 5)]

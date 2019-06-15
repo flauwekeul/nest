@@ -52,14 +52,16 @@ export class World {
   }
 
   addAnt({ tile = this.nestTile, direction = 0 } = {}) {
+    const { draw, nestTile } = this
     const ant = new Ant({
-      draw: this.draw,
+      draw,
       tile: this.tiles.get(tile),
       direction,
       getTilesInFront: (tile, direction) => {
         // get tiles in order: center, left, right
         const tiles = surroundingTiles(this.tiles, tile, [direction, direction - 1, direction + 1])
-        return new TilesInFront({ tiles, nestTile: this.nestTile })
+        const antsOnTiles = tiles.map(tile => this.ants.find(ant => ant.tile.equals(tile))).filter(Boolean)
+        return new TilesInFront({ tiles, nestTile, antsOnTiles })
       },
     })
 

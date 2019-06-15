@@ -6,16 +6,21 @@ import { randomNumber } from '../utils'
  * It's the interface an ant has to "sense" its immediate surroundings.
  */
 export class TilesInFront {
-  constructor({ tiles, nestTile }) {
+  constructor({ tiles = [], nestTile, antsOnTiles = [] }) {
     this.center = tiles[0]
     this.left = tiles[1]
     this.right = tiles[2]
     this.tiles = tiles.filter(Boolean)
     this._nestTile = nestTile
+    this._ants = antsOnTiles
   }
 
   get count() {
     return this.tiles.length
+  }
+
+  hasAntInCenter() {
+    return this._ants.some(ant => ant.tile.equals(this.center))
   }
 
   closestToFood() {
