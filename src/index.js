@@ -7,8 +7,8 @@ import {
   WORLD_NEST_COORDINATES,
   WORLD_WIDTH,
 } from './settings'
+import { Ticker } from './ticker'
 import { randomNumber } from './utils'
-import { Ticker } from './utils/ticker'
 import { World } from './world'
 
 const rootElement = document.getElementById('main')
