@@ -1,4 +1,4 @@
-import { PHEROMONE_DROP } from '../settings'
+import { ANT_CARRY_CAPACITY, PHEROMONE_DROP } from '../settings'
 import { signedModulo } from '../utils'
 import './ant.css'
 
@@ -8,7 +8,7 @@ export class Ant {
     this.tile = tile
     this.nestTile = tile
     this.getTilesInFront = getTilesInFront
-    this.carryCapacity = 100
+    this.carrying = 0
     this._setDirection(direction)
     this._setBehavior('explore')
   }
@@ -56,6 +56,10 @@ export class Ant {
   }
 
   move(tile) {
+    if (this.isCarrying()) {
+      this.tile.addPheromone(PHEROMONE_DROP)
+    }
+
     this.tile = tile
     const { x, y } = this._tileToPoint()
     this.svg.move(x, y)
@@ -96,7 +100,7 @@ export class Ant {
   }
 
   takeFood(tile) {
-    this.carrying = this.tilesInFront.takeFoodFrom({ tile, amount: this.carryCapacity })
+    this.carrying = this.tilesInFront.takeFoodFrom({ tile, amount: ANT_CARRY_CAPACITY })
     this.svg
       .select('.ant__graphic')
       // todo: add something in jaws of ant to show it's carrying something
@@ -107,7 +111,7 @@ export class Ant {
 
   drop() {
     // todo: do something with dropped food
-    this.carrying = null
+    this.carrying = 0
     this.svg.select('.ant__graphic').removeClass('ant__graphic--carrying')
 
     return this
@@ -149,7 +153,7 @@ export class Ant {
     }
 
     const nextTile = tilesInFront.closestToNest()
-    this._moveOrTurnTowards(nextTile)
+    return this._moveOrTurnTowards(nextTile)
   }
 
   goToFood() {
@@ -223,11 +227,10 @@ export class Ant {
 
     // ants can't be on the same tile, so an ant either steps aside when it wants to move to an occupied tile
     // or it waits a bit depending on if it's carrying something
-    // todo: when ants want to swap tiles, let them
     if (tilesInFront.hasAntInCenter() && !center.isNest()) {
-      const STEP_ASIDE_CHANCE = this.isCarrying() ? 0.1 : 0.7
+      // ants that are carrying something have priority
+      const STEP_ASIDE_CHANCE = this.isCarrying() ? 0.1 : 0.6
       if (Math.random() < STEP_ASIDE_CHANCE) {
-        this._leavePheromone()
         this._setBehavior('stepAside', {
           targetTile: center,
           sideTile: left || right,
@@ -237,11 +240,6 @@ export class Ant {
       return this
     }
 
-    this._leavePheromone()
     this.move(tile)
-  }
-
-  _leavePheromone() {
-    this.isCarrying() && this.tile.addPheromone(PHEROMONE_DROP)
   }
 }

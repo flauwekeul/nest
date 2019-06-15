@@ -19,3 +19,5 @@ export const WORLD_HEIGHT = 20
 export const WORLD_FOODS = 5
 export const WORLD_ANTS = 10
 export const WORLD_NEST_COORDINATES = [randomNumber(0, 5), randomNumber(0, 5)]
+
+export const ANT_CARRY_CAPACITY = 100
