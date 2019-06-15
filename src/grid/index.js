@@ -4,9 +4,8 @@ import './grid.css'
 import { defineTile } from './tile'
 
 export class Grid {
-  constructor({ draw, width = 1, height = 1, nestTile } = {}) {
+  constructor({ draw, width = 1, height = 1, nestCoordinates } = {}) {
     this.draw = draw
-    this.nestTile = nestTile
 
     const TilePrototype = defineTile(draw)
     const Tile = extendHex(TilePrototype)
@@ -15,10 +14,15 @@ export class Grid {
       width,
       height,
       onCreate: hex => {
-        if (hex.equals(nestTile)) {
+        if (hex.equals(nestCoordinates)) {
           hex.type = TILE_TYPES.NEST
         }
       },
+    }).map((hex, i, hexes) => {
+      // pre-calculate distance to nest for each hex
+      // todo: honeycomb: make distance accept a point as well
+      hex.distanceToNest = hex.distance(hexes.get(nestCoordinates))
+      return hex
     })
   }
 

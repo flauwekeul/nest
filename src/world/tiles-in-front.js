@@ -33,7 +33,7 @@ export class TilesInFront {
         // go to strongest pheromone if the difference is significant
         return Math.abs(a.pheromone - b.pheromone) > PHEROMONE_MAX * 0.1
           ? b.pheromone - a.pheromone
-          : this._distanceToNest(b) - this._distanceToNest(a)
+          : b.distanceToNest - a.distanceToNest
       }
 
       return a.pheromone ? -1 : 1
@@ -43,7 +43,7 @@ export class TilesInFront {
   closestToNest() {
     const priorityTiles = this.tiles.filter(tile => tile.isNest() || tile.pheromone > 0)
     return (priorityTiles.length > 0 ? priorityTiles : this.tiles).sort(
-      (a, b) => this._distanceToNest(a) - this._distanceToNest(b),
+      (a, b) => a.distanceToNest - b.distanceToNest,
     )[0]
   }
 
@@ -62,10 +62,5 @@ export class TilesInFront {
   random() {
     const { count } = this
     return count > 0 ? this.tiles[randomNumber(0, count - 1)] : null
-  }
-
-  // todo: memoize this (or just set it on each tile)
-  _distanceToNest(tile) {
-    return this._nestTile.distance(tile)
   }
 }

@@ -4,7 +4,7 @@ import {
   WORLD_ANTS,
   WORLD_FOODS,
   WORLD_HEIGHT,
-  WORLD_NEST_TILE,
+  WORLD_NEST_COORDINATES,
   WORLD_WIDTH,
 } from './settings'
 import { randomNumber } from './utils'
@@ -12,7 +12,12 @@ import { Ticker } from './utils/ticker'
 import { World } from './world'
 
 const rootElement = document.getElementById('main')
-const world = new World({ el: rootElement, width: WORLD_WIDTH, height: WORLD_HEIGHT, nestTile: WORLD_NEST_TILE })
+const world = new World({
+  el: rootElement,
+  width: WORLD_WIDTH,
+  height: WORLD_HEIGHT,
+  nestCoordinates: WORLD_NEST_COORDINATES,
+})
 world.render({ debug: false })
 
 for (let i = 0; i < WORLD_FOODS; i++) {

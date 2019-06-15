@@ -30,12 +30,11 @@ export class World {
     return this.grid.hexes
   }
 
-  constructor({ el, width = 1, height = 1, nestTile } = {}) {
+  constructor({ el, width = 1, height = 1, nestCoordinates } = {}) {
     this.el = el
     this.draw = svgjs(this.el)
-    this.grid = new Grid({ draw: this.draw, nestTile, width, height })
-
-    this.nestTile = this.tiles.get(nestTile)
+    this.grid = new Grid({ draw: this.draw, nestCoordinates, width, height })
+    this.nestTile = this.tiles.get(nestCoordinates)
     this.ants = []
   }
 
