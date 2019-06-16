@@ -1,8 +1,7 @@
 import { FOOD_MAX } from '../../settings'
 
 export class Food {
-  constructor({ draw, tile, amount = FOOD_MAX } = {}) {
-    this.draw = draw
+  constructor({ tile, amount = FOOD_MAX } = {}) {
     this.tile = tile
     this.amount = amount
   }
@@ -11,8 +10,7 @@ export class Food {
     const { tile } = this
     // todo: this is duplicated in Ant and Grid
     const { x, y } = tile.center().add(tile.toPoint())
-    // todo: is draw needed? doesn't tile.svg have the same interface?
-    this.svg = this.draw
+    this.svg = tile.svg
       // height is smallest dimension
       .circle(this._svgSize())
       .addClass('food')
