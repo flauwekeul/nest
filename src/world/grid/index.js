@@ -1,6 +1,5 @@
 import { defineGrid, extendHex } from 'honeycomb-grid'
 import { TILE_TYPES } from '../../settings'
-import './grid.css'
 import { defineTile } from './tile'
 
 export class Grid {
@@ -24,14 +23,21 @@ export class Grid {
       hex.distanceToNest = hex.distance(hexes.get(nestCoordinates))
       return hex
     })
+
+    this.isShowingCoordinates = false
   }
 
-  render({ debug = false } = {}) {
+  render() {
     // todo: honeycomb: corners should be on Hex?
     const hexCorners = this.hexes[0].corners()
     const svgSymbol = this.draw.symbol().polygon(hexCorners.map(({ x, y }) => `${x},${y}`))
-    this.hexes.forEach(hex => hex.render({ svgSymbol, debug }))
+    this.hexes.forEach(hex => hex.render({ svgSymbol }))
 
     return this
+  }
+
+  toggleCoordinates() {
+    this.isShowingCoordinates = !this.isShowingCoordinates
+    this.hexes.forEach(hex => hex.toggleCoordinates())
   }
 }

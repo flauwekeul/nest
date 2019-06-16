@@ -1,4 +1,5 @@
 import { PHEROMONE_EVAPORATE, PHEROMONE_MAX, TILE_SIZE, TILE_TYPES } from '../../settings'
+import './tile.css'
 
 const _debugFont = {
   size: TILE_SIZE / 2,
@@ -13,7 +14,7 @@ export const defineTile = draw => ({
   type: TILE_TYPES.FLOOR,
   pheromone: 0,
 
-  render({ svgSymbol, debug = false } = {}) {
+  render({ svgSymbol } = {}) {
     const { x, y } = this.toPoint()
     const useEl = draw
       .use(svgSymbol)
@@ -24,19 +25,25 @@ export const defineTile = draw => ({
       useEl.addClass('tile--nest')
     }
 
-    const groupEl = draw.group().add(useEl)
+    this.svg = draw.group().add(useEl)
+  },
 
-    if (debug) {
-      const position = this.center().add(x, y)
-      const coordinatesEl = draw
-        .text(`${this.x},${this.y}`)
-        // .text(`${this.q},${this.r},${this.s}`)
-        .font(_debugFont)
-        .translate(position.x, position.y - _debugFont.size)
-      groupEl.add(coordinatesEl)
+  toggleCoordinates() {
+    const coordinates = this.svg.select('.tile--coordinates').first()
+
+    if (coordinates) {
+      return coordinates.visible() ? coordinates.hide() : coordinates.show()
     }
 
-    this.svg = groupEl
+    const { x, y } = this.toPoint()
+    const position = this.center().add(x, y)
+    const coordinatesEl = this.svg
+      .text(`${this.x},${this.y}`)
+      // .text(`${this.q},${this.r},${this.s}`)
+      .addClass('tile--coordinates')
+      .font(_debugFont)
+      .translate(position.x, position.y - _debugFont.size)
+    this.svg.add(coordinatesEl)
   },
 
   isNest() {

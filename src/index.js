@@ -8,7 +8,7 @@ import {
   WORLD_WIDTH,
 } from './settings'
 import { Ticker } from './ticker'
-import { createPlayPauseButton, createTickButton } from './ui'
+import { createPlayPauseButton, createTickButton, createToggleCoordinatesButton } from './ui'
 import { randomNumber } from './utils'
 import { World } from './world'
 
@@ -19,7 +19,7 @@ const world = new World({
   height: WORLD_HEIGHT,
   nestCoordinates: WORLD_NEST_COORDINATES,
 })
-world.render({ debug: false })
+world.render()
 
 for (let i = 0; i < WORLD_FOODS; i++) {
   world.addFood({
@@ -41,3 +41,4 @@ const ticker = new Ticker(() => {
 
 createPlayPauseButton(ticker)
 createTickButton(world)
+createToggleCoordinatesButton(world.grid)

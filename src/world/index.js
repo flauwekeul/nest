@@ -38,10 +38,9 @@ export class World {
     this.ants = []
   }
 
-  // todo: make a button to toggle debug
-  render({ debug = false } = {}) {
+  render() {
     // todo: don't render all hexes, but only the ants, foods and pheromones
-    this.grid.render({ debug })
+    this.grid.render()
 
     const { width, height } = this.draw.bbox()
     this.el.style.width = `${width}px`
