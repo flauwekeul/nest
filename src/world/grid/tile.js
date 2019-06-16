@@ -1,4 +1,4 @@
-import { PHEROMONE_EVAPORATE, PHEROMONE_MAX, TILE_SIZE, TILE_TYPES } from '../settings'
+import { PHEROMONE_EVAPORATE, PHEROMONE_MAX, TILE_SIZE, TILE_TYPES } from '../../settings'
 
 const _debugFont = {
   size: TILE_SIZE / 2,

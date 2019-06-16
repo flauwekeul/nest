@@ -1,4 +1,4 @@
-import { FOOD_MAX } from '../settings'
+import { FOOD_MAX } from '../../settings'
 
 export class Food {
   constructor({ draw, tile, amount = FOOD_MAX } = {}) {

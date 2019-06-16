@@ -1,5 +1,5 @@
 import { defineGrid, extendHex } from 'honeycomb-grid'
-import { TILE_TYPES } from '../settings'
+import { TILE_TYPES } from '../../settings'
 import './grid.css'
 import { defineTile } from './tile'
 

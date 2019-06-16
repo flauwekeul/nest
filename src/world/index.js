@@ -1,9 +1,9 @@
 import svgjs from 'svg.js'
 import { Ant } from '../ant'
-import { Food } from '../food'
-import { Grid } from '../grid'
 import { FOOD_MAX } from '../settings'
 import { signedModulo } from '../utils'
+import { Food } from './food'
+import { Grid } from './grid'
 import { TilesInFront } from './tiles-in-front'
 import './world.css'
 
